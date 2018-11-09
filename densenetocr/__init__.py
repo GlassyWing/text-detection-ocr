@@ -1,0 +1,1 @@
+from densenetocr.core import DenseNetOCR
