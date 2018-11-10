@@ -36,8 +36,9 @@ class DataLoader:
 
     def __produce(self):
         xmlfiles = self.xmlfiles
+        rd = random_uniform_num(self.total_size)
         while True:
-            shuf = xmlfiles[self.__rd.get(1)]
+            shuf = xmlfiles[rd.get(1)]
             self.__data_queue.put(self.__single_sample(shuf[0]))
 
     def __single_sample(self, xml_path):
