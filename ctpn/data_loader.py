@@ -1,8 +1,6 @@
 import os
 from concurrent.futures import ThreadPoolExecutor
 from glob import glob
-from multiprocessing import Queue, cpu_count
-from multiprocessing.dummy import Pool
 
 import cv2
 import numpy as np
@@ -12,7 +10,7 @@ from ctpn.lib.utils import random_uniform_num, readxml, cal_rpn, IMAGE_MEAN
 
 class DataLoader:
 
-    def __init__(self, anno_dir, images_dir, parallelism=cpu_count(), cache_size=4):
+    def __init__(self, anno_dir, images_dir, cache_size=64):
         self.anno_dir = anno_dir
         self.images_dir = images_dir
         self.batch_size = 1
@@ -21,9 +19,8 @@ class DataLoader:
         self.xmlfiles = glob(f'{anno_dir}/*.xml')
         self.total_size = len(self.xmlfiles)
         self.cache_size = cache_size
-        self.parallelism = parallelism
         self.__rd = random_uniform_num(self.total_size)
-        self.__data_queue = Queue(cache_size)
+        self.__data_queue = []
         self.xmlfiles = np.array(self.xmlfiles)
         self.steps_per_epoch = self.total_size // self.batch_size
         self.__init_queue()
@@ -32,14 +29,7 @@ class DataLoader:
         with ThreadPoolExecutor() as executor:
             for data in executor.map(lambda xml_path: self.__single_sample(xml_path),
                                      self.xmlfiles[self.__rd.get(self.cache_size)]):
-                self.__data_queue.put(data)
-
-    def __produce(self):
-        xmlfiles = self.xmlfiles
-        rd = random_uniform_num(self.total_size)
-        while True:
-            shuf = xmlfiles[rd.get(1)]
-            self.__data_queue.put(self.__single_sample(shuf[0]))
+                self.__data_queue.append(data)
 
     def __single_sample(self, xml_path):
         gtbox, imgfile = readxml(xml_path)
@@ -47,13 +37,13 @@ class DataLoader:
         return gtbox, imgfile, img
 
     def load_data(self):
-        pool = Pool(processes=self.parallelism)
-        for _ in range(self.parallelism):
-            pool.apply_async(self.__produce)
 
         while True:
 
-            gtbox, imgfile, img = self.__data_queue.get()
+            if len(self.__data_queue) == 0:
+                self.__init_queue()
+
+            gtbox, imgfile, img = self.__data_queue.pop(0)
             h, w, c = img.shape
 
             # clip image
