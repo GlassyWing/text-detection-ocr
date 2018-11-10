@@ -1,4 +1,5 @@
 import os
+from concurrent.futures import ThreadPoolExecutor
 from glob import glob
 from multiprocessing import Queue, cpu_count
 from multiprocessing.dummy import Pool
@@ -28,9 +29,10 @@ class DataLoader:
         self.__init_queue()
 
     def __init_queue(self):
-        for _ in range(self.cache_size):
-            shuf = self.xmlfiles[self.__rd.get(1)]
-            self.__data_queue.put(self.__single_sample(shuf[0]))
+        with ThreadPoolExecutor() as executor:
+            for data in executor.map(lambda xml_path: self.__single_sample(xml_path),
+                                     self.xmlfiles[self.__rd.get(self.cache_size)]):
+                self.__data_queue.put(data)
 
     def __produce(self):
         xmlfiles = self.xmlfiles
