@@ -12,6 +12,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("-ie", "--initial_epoch", help="初始迭代数", default=0, type=int)
     parser.add_argument("-bs", "--batch_size", help="小批量处理大小", default=64, type=int)
+    parser.add_argument("--epochs", help="迭代数", default=20, type=int)
     parser.add_argument("--gpus", help="gpu的数量", default=1, type=int)
     parser.add_argument("--images_dir", help="训练图像位置", default="/home/sunsheenai/application/data/OCR/images")
     parser.add_argument("--dict_file_path", help="字典文件位置",
@@ -23,7 +24,7 @@ if __name__ == '__main__':
     parser.add_argument("--config_file_path", help="模型配置文件位置",
                         default="config/densent-default.json")
     parser.add_argument("--weights_file_path", help="模型初始权重文件位置",
-                        default="model/weights-densent-init.hdf5")
+                        default=None)
 
     args = parser.parse_args()
 
@@ -88,7 +89,7 @@ if __name__ == '__main__':
     # 观测ctc损失的值，一旦损失回升，将学习率缩小一半
     lr_scheduler = LRScheduler(lambda _, lr: lr / 2, watch="loss", watch_his_len=1)
 
-    ocr.train(epochs=100,
+    ocr.train(epochs=args.epochs,
               train_data_loader=train_data_loader,
               valid_data_loader=valid_data_loader,
               callbacks=[earlystop, checkpoint, log, lr_scheduler],
