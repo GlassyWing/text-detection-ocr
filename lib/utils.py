@@ -240,9 +240,9 @@ def get_session(gpu_fraction=0.6):
 
     if num_threads:
         return tf.Session(config=tf.ConfigProto(
-            gpu_options=gpu_options, intra_op_parallelism_threads=num_threads))
+            gpu_options=gpu_options, intra_op_parallelism_threads=num_threads, allow_soft_placement=True))
     else:
-        return tf.Session(config=tf.ConfigProto(gpu_options=gpu_options))
+        return tf.Session(config=tf.ConfigProto(gpu_options=gpu_options, allow_soft_placement=True))
 
 
 class random_uniform_num():

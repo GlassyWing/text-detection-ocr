@@ -1,53 +1,10 @@
 import keras.backend as K
-import numpy as np
-from keras.callbacks import ModelCheckpoint, EarlyStopping, TensorBoard, Callback
+from keras.callbacks import EarlyStopping, TensorBoard
 
+from custom import LRScheduler, SingleModelCK
 from densenetocr import DenseNetOCR
 from densenetocr.data_loader import DataLoader
 from lib import utils
-
-
-class HistoryCache:
-
-    def __init__(self, his_len=10):
-        self.history = [0] * his_len
-        self.history_len = his_len
-        self.cursor = 0
-
-    def put(self, value):
-        self.history[self.cursor] = value
-        self.cursor += 1
-        if self.cursor >= self.history_len:
-            self.cursor = 0
-
-    def mean(self):
-        return np.array(self.history).mean()
-
-
-class LRScheduler(Callback):
-
-    def __init__(self, schedule, watch, watch_his_len=10):
-        super().__init__()
-        self.schedule = schedule
-        self.watch = watch
-        self.history_cache = HistoryCache(watch_his_len)
-
-    def on_epoch_begin(self, epoch, logs=None):
-        logs = logs or {}
-        logs['lr'] = K.get_value(self.model.optimizer.lr)
-
-    def on_epoch_end(self, epoch, logs=None):
-        lr = float(K.get_value(self.model.optimizer.lr))
-        watch_value = logs.get(self.watch)
-        if watch_value is None:
-            raise ValueError(f"Watched value '{self.watch}' don't exist")
-
-        if watch_value > self.history_cache.mean():
-            lr = self.schedule(epoch, lr)
-            K.set_value(self.model.optimizer.lr, lr)
-
-        self.history_cache.put(watch_value)
-
 
 if __name__ == '__main__':
     import argparse
@@ -55,6 +12,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("-ie", "--initial_epoch", help="初始迭代数", default=0, type=int)
     parser.add_argument("-bs", "--batch_size", help="小批量处理大小", default=64, type=int)
+    parser.add_argument("--gpus", help="gpu的数量", default=1, type=int)
     parser.add_argument("--images_dir", help="训练图像位置", default="/home/sunsheenai/application/data/OCR/images")
     parser.add_argument("--dict_file_path", help="字典文件位置",
                         default="/home/sunsheenai/application/data/OCR/char_std_5990.txt")
@@ -79,6 +37,8 @@ if __name__ == '__main__':
     # 载入模型配置文件
     config = DenseNetOCR.load_config(args.config_file_path)
     weights_file_path = args.weights_file_path
+    gpus = args.gpus
+    config['num_gpu'] = gpus
 
     # 载入初始权重
     if weights_file_path is not None:
@@ -116,8 +76,9 @@ if __name__ == '__main__':
 
     ocr = DenseNetOCR(**config)
 
-    checkpoint = ModelCheckpoint(r'model/weights-densent-{epoch:02d}.hdf5',
-                                 save_weights_only=True)
+    checkpoint = SingleModelCK(r'model/weights-densent-{epoch:02d}.hdf5',
+                               model=ocr.model,
+                               save_weights_only=True)
 
     earlystop = EarlyStopping(patience=10)
     log = TensorBoard(log_dir='logs', histogram_freq=0, batch_size=train_data_loader.batch_size,

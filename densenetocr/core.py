@@ -9,6 +9,7 @@ from keras.layers import Conv2D, BatchNormalization, Activation, Dropout, Averag
 from keras.layers.merge import concatenate
 from keras.optimizers import Adam
 from keras.regularizers import l2
+from keras.utils.multi_gpu_utils import multi_gpu_model
 
 from densenetocr.data_loader import DataLoader
 
@@ -59,14 +60,15 @@ class DenseNetOCR:
 
     def __init__(self,
                  num_classes,
-                 lr=0.005,
+                 lr=0.0005,
                  image_height=32,
-                 image_channels=3,
-                 maxlen=100,
+                 image_channels=1,
+                 maxlen=50,
                  dropout_rate=0.2,
                  weight_decay=1e-4,
                  filters=64,
-                 weight_path=None):
+                 weight_path=None,
+                 num_gpu=1):
         self.image_shape = (image_height, None, image_channels)
         self.lr = lr
         self.image_height, self.image_channels = image_height, image_channels
@@ -75,7 +77,8 @@ class DenseNetOCR:
         self.weight_decay = weight_decay
         self.filters = filters
         self.num_classes = num_classes
-        self.base_model, self.model = self.__build_model()
+        self.num_gpu = num_gpu
+        self.base_model, self.model, self.parallel_model = self.__build_model()
         if weight_path is not None:
             self.base_model.load_weights(weight_path)
 
@@ -127,13 +130,18 @@ class DenseNetOCR:
         loss_out = Lambda(_ctc_loss, output_shape=(1,), name='ctc')([labels, y_pred, input_length, label_length])
 
         model = Model(inputs=[input, labels, input_length, label_length], outputs=loss_out)
-        adam = Adam(self.lr)
-        model.compile(loss={'ctc': lambda y_true, y_pred: y_pred}, optimizer=adam, metrics=['accuracy'])
 
-        return base_model, model
+        parallel_model = model
+        if self.num_gpu > 1:
+            parallel_model = multi_gpu_model(model, gpus=self.num_gpu)
+
+        adam = Adam(self.lr)
+        parallel_model.compile(loss={'ctc': lambda y_true, y_pred: y_pred}, optimizer=adam, metrics=['accuracy'])
+
+        return base_model, model, parallel_model
 
     def train(self, epochs, train_data_loader: DataLoader, valid_data_loader: DataLoader, **kwargs):
-        self.model.fit_generator(generator=train_data_loader.load_data(), epochs=epochs,
+        self.parallel_model.fit_generator(generator=train_data_loader.load_data(), epochs=epochs,
                                  steps_per_epoch=train_data_loader.steps_per_epoch,
                                  validation_data=valid_data_loader.load_data(),
                                  validation_steps=valid_data_loader.steps_per_epoch,
