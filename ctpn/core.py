@@ -11,16 +11,18 @@ from keras import Model
 from keras.applications.vgg16 import VGG16
 from keras.layers import Conv2D, Lambda, Bidirectional, GRU, Activation
 from keras.optimizers import Adam
+from keras.utils import multi_gpu_model
 
-from lib import utils, TextProposalConnectorOriented
+from ctpn.lib import TextProposalConnectorOriented
+from ctpn.lib import utils
 
 
 def _rpn_loss_regr(y_true, y_pred):
     """
     smooth L1 loss
 
-    y_ture [1][HXWX9][3] (class,regr)
-    y_pred [1][HXWX9][2] (reger)
+    y_ture [1][HXWX10][3] (class,regr)
+    y_pred [1][HXWX10][2] (reger)
     """
 
     sigma = 9.0
@@ -42,8 +44,8 @@ def _rpn_loss_cls(y_true, y_pred):
     """
     softmax loss
 
-    y_true [1][1][HXWX9] class
-    y_pred [1][HXWX9][2] class
+    y_true [1][1][HXWX10] class
+    y_pred [1][HXWX10][2] class
     """
     y_true = y_true[0][0]
     cls_keep = tf.where(tf.not_equal(y_true, -1))[:, 0]
@@ -57,30 +59,32 @@ def _rpn_loss_cls(y_true, y_pred):
 
 def _reshape(x):
     b = tf.shape(x)
-    x = tf.reshape(x, [b[0] * b[1], b[2], b[3]])
+    x = tf.reshape(x, [b[0] * b[1], b[2], b[3]])    # (N x H, W, C)
     return x
 
 
 def _reshape2(x):
     x1, x2 = x
     b = tf.shape(x2)
-    x = tf.reshape(x1, [b[0], b[1], b[2], 256])
+    x = tf.reshape(x1, [b[0], b[1], b[2], 256])     # (N, H, W, 256)
     return x
 
 
 def _reshape3(x):
     b = tf.shape(x)
-    x = tf.reshape(x, [b[0], b[1] * b[2] * 10, 2])
+    x = tf.reshape(x, [b[0], b[1] * b[2] * 10, 2])  # (N, H x W x 10, 2)
     return x
 
 
 class CTPN:
 
-    def __init__(self, image_channels=3, vgg_trainable=False, weight_path=None):
+    def __init__(self, lr=0.00001, image_channels=3, vgg_trainable=False, weight_path=None, num_gpu=1):
         self.image_channels = image_channels
         self.image_shape = (None, None, image_channels)
         self.vgg_trainable = vgg_trainable
-        self.model, self.predict_model = self.__build_model()
+        self.num_gpu = num_gpu
+        self.lr = lr
+        self.model, self.parallel_model, self.predict_model = self.__build_model()
         if weight_path is not None:
             self.model.load_weights(weight_path)
 
@@ -117,15 +121,19 @@ class CTPN:
 
         train_model = Model(input, [cls, regr])
 
-        adam = Adam(0.00001)
-        train_model.compile(optimizer=adam,
-                            loss={'rpn_class_reshape': _rpn_loss_cls, 'rpn_regress_reshape': _rpn_loss_regr},
-                            loss_weights={'rpn_class_reshape': 1.0, 'rpn_regress_reshape': 1.0})
+        parallel_model = train_model
+        if self.num_gpu > 1:
+            parallel_model = multi_gpu_model(train_model, gpus=self.num_gpu)
 
-        return train_model, predict_model
+        adam = Adam(self.lr)
+        parallel_model.compile(optimizer=adam,
+                               loss={'rpn_class_reshape': _rpn_loss_cls, 'rpn_regress_reshape': _rpn_loss_regr},
+                               loss_weights={'rpn_class_reshape': 1.0, 'rpn_regress_reshape': 1.0})
+
+        return train_model, parallel_model, predict_model
 
     def train(self, train_data_generator, epochs, **kwargs):
-        self.model.fit_generator(train_data_generator, epochs=epochs, **kwargs)
+        self.parallel_model.fit_generator(train_data_generator, epochs=epochs, **kwargs)
 
     def predict(self, image_path, output_path=None, mode=1):
         img = cv2.imread(image_path)
@@ -173,14 +181,16 @@ class CTPN:
 
             plt.imshow(img)
             plt.show()
-            cv2.imwrite(output_path, img)
+            if output_path is not None:
+                cv2.imwrite(output_path, img)
         elif mode == 2:
             return text, img
 
     def config(self):
         return {
             "image_channels": self.image_channels,
-            "vgg_trainable": self.vgg_trainable
+            "vgg_trainable": self.vgg_trainable,
+            "lr": self.lr
         }
 
     @staticmethod

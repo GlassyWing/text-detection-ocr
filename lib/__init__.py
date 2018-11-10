@@ -1,5 +1,0 @@
-from lib.other import Graph
-from lib.text_connect_cfg import Config
-from lib.text_proposal_graph_builder import TextProposalGraphBuilder
-from lib.text_proposal_connector import TextProposalConnector
-from lib.text_proposal_connector_oriented import TextProposalConnectorOriented

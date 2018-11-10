@@ -4,7 +4,7 @@ from keras.callbacks import EarlyStopping, TensorBoard
 from custom import LRScheduler, SingleModelCK
 from densenetocr import DenseNetOCR
 from densenetocr.data_loader import DataLoader
-from lib import utils
+from ctpn.lib import utils
 
 if __name__ == '__main__':
     import argparse
