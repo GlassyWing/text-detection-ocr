@@ -77,7 +77,7 @@ def _reshape3(x):
 
 class CTPN:
 
-    def __init__(self, lr=0.00001, image_channels=3, vgg_trainable=True, weight_path=None, num_gpu=1):
+    def __init__(self, lr=0.001, image_channels=3, vgg_trainable=True, weight_path=None, num_gpu=1):
         self.image_channels = image_channels
         self.image_shape = (None, None, image_channels)
         self.vgg_trainable = vgg_trainable
