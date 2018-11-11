@@ -128,7 +128,8 @@ class CTPN:
         adam = Adam(self.lr)
         parallel_model.compile(optimizer=adam,
                                loss={'rpn_class_reshape': _rpn_loss_cls, 'rpn_regress_reshape': _rpn_loss_regr},
-                               loss_weights={'rpn_class_reshape': 1.0, 'rpn_regress_reshape': 1.0})
+                               loss_weights={'rpn_class_reshape': 1.0, 'rpn_regress_reshape': 1.0},
+                               metrics=['accuracy'])
 
         return train_model, parallel_model, predict_model
 
