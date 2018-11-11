@@ -354,8 +354,8 @@ def gen_sample(xmlpath, imgpath, batchsize=1):
 
 
 def rpn_test():
-    xmlpath = 'E:\data\VOCdevkit\VOC2007\Annotations\img_4375.xml'
-    imgpath = 'E:\data\VOCdevkit\VOC2007\JPEGImages\img_4375.jpg'
+    xmlpath = 'G:\data\VOCdevkit\VOC2007\Annotations\img_4375.xml'
+    imgpath = 'G:\data\VOCdevkit\VOC2007\JPEGImages\img_4375.jpg'
     gtbox, _ = readxml(xmlpath)
     img = cv2.imread(imgpath)
     h, w, c = img.shape

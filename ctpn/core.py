@@ -1,15 +1,14 @@
 import json
 
 import cv2
-import numpy as np
-import matplotlib.pyplot as plt
-
-import tensorflow as tf
 import keras.backend as K
-
+import matplotlib.pyplot as plt
+import numpy as np
+import tensorflow as tf
 from keras import Model
 from keras.applications.vgg16 import VGG16
 from keras.layers import Conv2D, Lambda, Bidirectional, GRU, Activation
+from keras.metrics import binary_accuracy
 from keras.optimizers import Adam
 from keras.utils import multi_gpu_model
 
@@ -59,14 +58,14 @@ def _rpn_loss_cls(y_true, y_pred):
 
 def _reshape(x):
     b = tf.shape(x)
-    x = tf.reshape(x, [b[0] * b[1], b[2], b[3]])    # (N x H, W, C)
+    x = tf.reshape(x, [b[0] * b[1], b[2], b[3]])  # (N x H, W, C)
     return x
 
 
 def _reshape2(x):
     x1, x2 = x
     b = tf.shape(x2)
-    x = tf.reshape(x1, [b[0], b[1], b[2], 256])     # (N, H, W, 256)
+    x = tf.reshape(x1, [b[0], b[1], b[2], 256])  # (N, H, W, 256)
     return x
 
 
@@ -109,13 +108,13 @@ class CTPN:
         x3 = Lambda(_reshape2, output_shape=(None, None, 256))([x2, x])
         x3 = Conv2D(512, (1, 1), padding='same', activation='relu', name='lstm_fc')(x3)
 
-        cls = Conv2D(10 * 2, (1, 1), padding='same', activation='linear', name='rpn_class')(x3)
-        regr = Conv2D(10 * 2, (1, 1), padding='same', activation='linear', name='rpn_regress')(x3)
+        cls = Conv2D(10 * 2, (1, 1), padding='same', activation='linear', name='rpn_class_origin')(x3)
+        regr = Conv2D(10 * 2, (1, 1), padding='same', activation='linear', name='rpn_regress_origin')(x3)
 
-        cls = Lambda(_reshape3, output_shape=(None, 2), name='rpn_class_reshape')(cls)
+        cls = Lambda(_reshape3, output_shape=(None, 2), name='rpn_class')(cls)
         cls_prod = Activation('softmax', name='rpn_cls_softmax')(cls)
 
-        regr = Lambda(_reshape3, output_shape=(None, 2), name='rpn_regress_reshape')(regr)
+        regr = Lambda(_reshape3, output_shape=(None, 2), name='rpn_regress')(regr)
 
         predict_model = Model(input, [cls, regr, cls_prod])
 
@@ -127,9 +126,8 @@ class CTPN:
 
         adam = Adam(self.lr)
         parallel_model.compile(optimizer=adam,
-                               loss={'rpn_class_reshape': _rpn_loss_cls, 'rpn_regress_reshape': _rpn_loss_regr},
-                               loss_weights={'rpn_class_reshape': 1.0, 'rpn_regress_reshape': 1.0},
-                               metrics=['accuracy'])
+                               loss={'rpn_regress': _rpn_loss_regr, 'rpn_class': _rpn_loss_cls},
+                               loss_weights={'rpn_regress': 1.0, 'rpn_class': 1.0})
 
         return train_model, parallel_model, predict_model
 
