@@ -9,15 +9,18 @@ class HistoryCache:
         self.history = [0] * his_len
         self.history_len = his_len
         self.cursor = 0
+        self.len = 0
 
     def put(self, value):
         self.history[self.cursor] = value
         self.cursor += 1
         if self.cursor >= self.history_len:
             self.cursor = 0
+        if self.len + 1 <= self.history_len:
+            self.len += 1
 
     def mean(self):
-        return np.array(self.history).mean()
+        return np.array(self.history[0: self.len]).mean()
 
 
 class LRScheduler(Callback):
