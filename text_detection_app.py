@@ -67,16 +67,16 @@ def single_text_detect(rec, ocr, id_to_char, img, adjust):
 
 
 def model(ctpn, ocr, id_to_char, image_path, adjust):
-    text_recs, img = ctpn.predict(image_path, mode=2)
+    text_recs, img = ctpn.predict(image_path, mode=2)  # 得到所有的检测框
     text_recs = sort_box(text_recs)
     results = []
 
     for index, rec in enumerate(text_recs):
-        image, text = single_text_detect(rec, ocr, id_to_char, img, adjust)
+        image, text = single_text_detect(rec, ocr, id_to_char, img, adjust)  # 识别文字
         # plt.subplot(len(text_recs), 1, index + 1)
         # plt.imshow(image)
         if text is not None and len(text) > 0:
-            results.append((rec, text))  # 识别文字
+            results.append((rec, text))
 
     # plt.show()
 
@@ -102,12 +102,15 @@ class TextDetectionApp:
 
         self.id_to_char = load_dict(dict_path, encoding="utf-8")
 
+        # 初始化CTPN模型
         if ctpn_config_path is not None:
             ctpn_config = CTPN.load_config(ctpn_config_path)
             ctpn_config["weight_path"] = ctpn_weight_path
             self.ctpn = CTPN(**ctpn_config)
         else:
             self.ctpn = CTPN()
+
+        # 初始化Densenet 模型
         if densenet_config_path is not None:
             densenet_config = DenseNetOCR.load_config(densenet_config_path)
             densenet_config["weight_path"] = densenet_weight_path
@@ -116,6 +119,12 @@ class TextDetectionApp:
             self.ocr = DenseNetOCR(num_classes=len(self.id_to_char))
 
     def detect(self, image_path, adjust):
+        """
+
+        :param image_path: 图像路径
+        :param adjust: 是否调整检测框
+        :return:
+        """
         return model(self.ctpn, self.ocr, self.id_to_char, image_path, adjust)
 
 
