@@ -87,7 +87,7 @@ class CTPN:
             self.model.load_weights(weight_path)
 
     def __build_model(self):
-        base_model = VGG16(weights=None, include_top=False, input_shape=self.image_shape)
+        base_model = VGG16(include_top=False, input_shape=self.image_shape)
 
         if self.vgg_trainable:
             base_model.trainable = True
