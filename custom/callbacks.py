@@ -38,11 +38,12 @@ class LRScheduler(Callback):
         if watch_value is None:
             raise ValueError(f"Watched value '{self.watch}' don't exist")
 
+        self.history_cache.put(watch_value)
+
         if watch_value > self.history_cache.mean():
             lr = self.schedule(epoch, lr)
+            print(f"Update learning rate: {lr}")
             K.set_value(self.model.optimizer.lr, lr)
-
-        self.history_cache.put(watch_value)
 
 
 class SingleModelCK(ModelCheckpoint):
