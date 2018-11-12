@@ -1,3 +1,4 @@
+import argparse
 from datetime import datetime
 from math import *
 
@@ -6,9 +7,12 @@ import numpy as np
 from PIL import Image
 
 from ctpn import CTPN
+from ctpn.lib.utils import get_session
 from densenetocr import DenseNetOCR
 from densenetocr.data_loader import load_dict
 import matplotlib.pyplot as plt
+import os
+import keras.backend as K
 
 
 def dumpRotateImage(img, degree, pt1, pt2, pt3, pt4):
@@ -125,16 +129,36 @@ class TextDetectionApp:
         :param adjust: 是否调整检测框
         :return:
         """
+        if not os.path.exists(image_path):
+            raise ValueError(f"The image path: {image_path} not exists!")
         return model(self.ctpn, self.ocr, self.id_to_char, image_path, adjust)
 
 
 if __name__ == '__main__':
-    app = TextDetectionApp(ctpn_weight_path="model/weights-ctpnlstm-init.hdf5",
-                           densenet_weight_path="model/weights-densent-init.hdf5",
-                           dict_path="data/char_std_5990.txt",
-                           ctpn_config_path="config/ctpn-default.json",
-                           densenet_config_path="config/densent-default.json")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--image_path", help="图像位置")
+    parser.add_argument("--dict_file_path", help="字典文件位置", default="data/char_std_5990.txt")
+    parser.add_argument("--densenet_config_path", help="densenet模型配置文件位置",
+                        default="config/densent-default.json")
+    parser.add_argument("--ctpn_config_path", help="ctpn模型配置文件位置",
+                        default="config/ctpn-default.json")
+    parser.add_argument("--ctpn_weight_path", help="ctpn模型权重文件位置",
+                        default="model/weights-ctpnlstm-init.hdf5")
+    parser.add_argument("--densenet_weight_path", help="densenet模型权重文件位置",
+                        default="model/weights-densent-init.hdf5")
+    parser.add_argument("--adjust", help="是否对倾斜的文本进行旋转",
+                        default=False, type=bool)
+
+    args = parser.parse_args()
+
+    K.set_session(get_session())
+
+    app = TextDetectionApp(ctpn_weight_path=args.ctpn_weight_path,
+                           densenet_weight_path=args.densenet_weight_path,
+                           dict_path=args.dict_file_path,
+                           ctpn_config_path=args.ctpn_config_path,
+                           densenet_config_path=args.densenet_config_path)
     start_time = datetime.now()
-    for rect, line in app.detect("data/demo.jpg", False):
+    for rect, line in app.detect(args.image_path, args.adjust):
         print(line)
     print(f"cost {(datetime.now() - start_time).microseconds / 1000}ms")

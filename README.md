@@ -27,21 +27,22 @@
             - JPEGImages
     ```
 
-    数据集链接：[ctpn](https://pan.baidu.com/s/1kUNTl1l#list/path=%2F)
-
 - Densenet + ctc 使用的数据集分为3部分
 
   - 文字图像
   - 标注文件：包括图像路径与所对应的文本标记（train.txt, test.txt)
   - 字典文件：包含数据集中的所有文字 (char_std_5990.txt)
 
-    数据集链接：[densenet]()
+数据集链接：
+
+- ctpn: https://pan.baidu.com/s/1kUNTl1l#list/path=%2F
+- densenet: 链接: https://pan.baidu.com/s/1LT9whsTJx-S48rtRTXw5VA 提取码: rugb
 
 关于创建自己的文本识别数据集，可参考：[https://github.com/Sanster/text_renderer](https://github.com/Sanster/text_renderer)。
 
 ## 训练
 
-### CTPN
+### CTPN 训练
 
 ```sh
 > python ctpn_train.py -h
@@ -81,7 +82,7 @@ ctpn 的训练需要传入2个必要参数：
 }
 ```
 
-### Densenet
+### Densenet 训练
 
 ```sh
 > python densenetocr_train.py -h
@@ -129,8 +130,8 @@ Densnet 的训练需要4个必要参数：
 {
   "lr": 0.0005, // 初始学习率
   "num_classes": 5990, // 字典大小
-  "image_height": 32,   // 文本图像高
-  "image_channels": 1,  // 文本图像通道数
+  "image_height": 32,   // 图像高
+  "image_channels": 1,  // 图像通道数
   "maxlen": 50,         // 最长文本长度
   "dropout_rate": 0.2,  //  随机失活率
   "weight_decay": 0.0001, // 权重衰减率
@@ -140,4 +141,128 @@ Densnet 的训练需要4个必要参数：
 
 ## 预测
 
-等待。。。
+### CTPN 预测
+
+```sh
+> python ctpn_predict.py -h
+
+usage: ctpn_predict.py [-h] [--image_path IMAGE_PATH]
+                       [--config_file_path CONFIG_FILE_PATH]
+                       [--weights_file_path WEIGHTS_FILE_PATH]
+                       [--output_file_path OUTPUT_FILE_PATH]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --image_path IMAGE_PATH
+                        图像位置
+  --config_file_path CONFIG_FILE_PATH
+                        模型配置文件位置
+  --weights_file_path WEIGHTS_FILE_PATH
+                        模型权重文件位置
+  --output_file_path OUTPUT_FILE_PATH
+                        标记文件保存位置
+```
+
+1. 权重文件位置不指定默认使用`model/weights-ctpnlstm-init.hdf5`
+2. 配置文件位置不指定默认使用`config/ctpn-default.json`
+
+示例：
+
+```sh
+python ctpn_predict.py --image_path asset/demo_ctpn.jpg --output_file_path asset/demo_ctpn_labeled.jpg
+```
+
+<img src="asset/demo_ctpn.jpg" width=45%>
+<img src="asset/demo_ctpn_labeled.jpg" width=45%>
+
+### Densenet 预测
+
+```sh
+> python densenetocr_predict.py -h
+
+usage: densenetocr_predict.py [-h] [--image_path IMAGE_PATH]
+                              [--dict_file_path DICT_FILE_PATH]
+                              [--config_file_path CONFIG_FILE_PATH]
+                              [--weights_file_path WEIGHTS_FILE_PATH]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --image_path IMAGE_PATH
+                        图像位置
+  --dict_file_path DICT_FILE_PATH
+                        字典文件位置
+  --config_file_path CONFIG_FILE_PATH
+                        模型配置文件位置
+  --weights_file_path WEIGHTS_FILE_PATH
+                        模型权重文件位置
+```
+
+1. 权重文件位置不指定默认使用`model/weights-densent-init.hdf5`
+2. 配置文件位置不指定默认使用`config/densent-default.json`
+3. 字典文件位置不指定默认使用`data/char_std_5990.txt`
+
+示例：
+
+```sh
+python densenetocr_predict.py --image_path asset/demo_densenet.jpg
+```
+
+<img src="asset/demo_densenet.jpg" width=50%>
+<img src="asset/demo_densenet_recognited.png">
+
+
+## 文本检测与识别
+
+```sh
+> python text_detection_app.py -h
+
+usage: text_detection_app.py [-h] [--image_path IMAGE_PATH]
+                             [--dict_file_path DICT_FILE_PATH]
+                             [--densenet_config_path DENSENET_CONFIG_PATH]
+                             [--ctpn_config_path CTPN_CONFIG_PATH]
+                             [--ctpn_weight_path CTPN_WEIGHT_PATH]
+                             [--densenet_weight_path DENSENET_WEIGHT_PATH]
+                             [--adjust ADJUST]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --image_path IMAGE_PATH
+                        图像位置
+  --dict_file_path DICT_FILE_PATH
+                        字典文件位置
+  --densenet_config_path DENSENET_CONFIG_PATH
+                        densenet模型配置文件位置
+  --ctpn_config_path CTPN_CONFIG_PATH
+                        ctpn模型配置文件位置
+  --ctpn_weight_path CTPN_WEIGHT_PATH
+                        ctpn模型权重文件位置
+  --densenet_weight_path DENSENET_WEIGHT_PATH
+                        densenet模型权重文件位置
+  --adjust ADJUST       是否对倾斜的文本进行旋转
+
+```
+
+1. ctpn模型权重文件位置不指定默认使用`model/weights-ctpnlstm-init.hdf5`
+2. ctpn模型配置文件位置不指定默认使用`config/ctpn-default.json`
+3. densenet模型权重文件位置不指定默认使用`model/weights-densent-init.hdf5`
+4. densenet模型配置文件位置不指定默认使用`config/densent-default.json`
+5. 字典文件位置不指定默认使用`data/char_std_5990.txt`
+
+示例：
+
+```sh
+python text_detection_app.py  --image_path asset/demo_ctpn.jpg
+```
+<img src="asset/demo_ctpn.jpg" width=45%>
+<img src="asset/text_detect_recognited.png" width=45%>
+
+## 其它
+
+### 训练好的权重文件
+
+链接: https://pan.baidu.com/s/1HaeLO-fV_WCtTZl4DQvrzw 提取码: ihdx
+
+### 参考
+
+1. https://github.com/YCG09/chinese_ocr
+2. https://github.com/xiaomaxiao/keras_ocr
