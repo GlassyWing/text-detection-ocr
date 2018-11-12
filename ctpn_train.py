@@ -9,8 +9,6 @@ import keras.backend as K
 if __name__ == '__main__':
     import argparse
 
-    K.set_session(get_session(0.8))
-
     parser = argparse.ArgumentParser()
     parser.add_argument("-ie", "--initial_epoch", help="初始迭代数", default=0, type=int)
     parser.add_argument("--epochs", help="迭代数", default=20, type=int)
@@ -23,6 +21,8 @@ if __name__ == '__main__':
                         default=None)
 
     args = parser.parse_args()
+
+    K.set_session(get_session(0.8))
     config = CTPN.load_config(args.config_file_path)
 
     weights_file_path = args.weights_file_path
