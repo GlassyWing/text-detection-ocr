@@ -15,6 +15,16 @@
 
 ## 运行环境
 
+OS: win10
+Python: 3.6
+
+安装python依赖：
+
+```sh
+chmod +x setup.sh
+./setup.sh
+```
+
 ## 数据集
 
 - CTPN 训练使用的数据集格式与VOC数据集格式相同，目录格式如下：
