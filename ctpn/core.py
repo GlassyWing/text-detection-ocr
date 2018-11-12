@@ -8,7 +8,6 @@ import tensorflow as tf
 from keras import Model
 from keras.applications.vgg16 import VGG16
 from keras.layers import Conv2D, Lambda, Bidirectional, GRU, Activation
-from keras.metrics import binary_accuracy
 from keras.optimizers import Adam
 from keras.utils import multi_gpu_model
 
@@ -148,7 +147,7 @@ class CTPN:
         bbox = utils.clip_box(bbox, [h, w])
 
         # score > 0.7
-        fg = np.where(cls_prod[0, :, 1] > 0.7)[0]
+        fg = np.where(cls_prod[0, :, 1] > utils.IOU_SELECT)[0]
         select_anchor = bbox[fg, :]
         select_score = cls_prod[0, fg, 1]
         select_anchor = select_anchor.astype('int32')
@@ -161,7 +160,7 @@ class CTPN:
         select_score = select_score[keep_index]
         select_score = np.reshape(select_score, (select_score.shape[0], 1))
         nmsbox = np.hstack((select_anchor, select_score))
-        keep = utils.nms(nmsbox, 0.3)
+        keep = utils.nms(nmsbox, 1 - utils.IOU_SELECT)
         select_anchor = select_anchor[keep]
         select_score = select_score[keep]
 
@@ -171,12 +170,15 @@ class CTPN:
 
         text = text.astype('int32')
 
+        def draw_rect(rect):
+            cv2.line(img, (rect[0], rect[1]), (rect[2], rect[3]), (255, 0, 0), 2)
+            cv2.line(img, (rect[2], rect[3]), (rect[6], rect[7]), (255, 0, 0), 2)
+            cv2.line(img, (rect[6], rect[7]), (rect[4], rect[5]), (255, 0, 0), 2)
+            cv2.line(img, (rect[4], rect[5]), (rect[0], rect[1]), (255, 0, 0), 2)
+
         if mode == 1:
             for i in text:
-                cv2.line(img, (i[0], i[1]), (i[2], i[3]), (255, 0, 0), 2)
-                cv2.line(img, (i[0], i[1]), (i[4], i[5]), (255, 0, 0), 2)
-                cv2.line(img, (i[6], i[7]), (i[2], i[3]), (255, 0, 0), 2)
-                cv2.line(img, (i[4], i[5]), (i[6], i[7]), (255, 0, 0), 2)
+                draw_rect(i)
 
             plt.imshow(img)
             plt.show()
