@@ -8,6 +8,7 @@ from PIL import Image
 from ctpn import CTPN
 from densenetocr import DenseNetOCR
 from densenetocr.data_loader import load_dict
+import matplotlib.pyplot as plt
 
 
 def dumpRotateImage(img, degree, pt1, pt2, pt3, pt4):
@@ -62,7 +63,7 @@ def single_text_detect(rec, ocr, id_to_char, img, adjust):
 
     image = Image.fromarray(partImg).convert('L')
     text, _ = ocr.predict(image, id_to_char)
-    return text
+    return image, text
 
 
 def model(ctpn, ocr, id_to_char, image_path, adjust):
@@ -71,10 +72,13 @@ def model(ctpn, ocr, id_to_char, image_path, adjust):
     results = []
 
     for index, rec in enumerate(text_recs):
-        text = single_text_detect(rec, ocr, id_to_char, img, adjust)
-
+        image, text = single_text_detect(rec, ocr, id_to_char, img, adjust)
+        # plt.subplot(len(text_recs), 1, index + 1)
+        # plt.imshow(image)
         if text is not None and len(text) > 0:
             results.append((rec, text))  # 识别文字
+
+    # plt.show()
 
     return results
 
@@ -87,6 +91,14 @@ class TextDetectionApp:
                  dict_path,
                  ctpn_config_path=None,
                  densenet_config_path=None):
+        """
+
+        :param ctpn_weight_path:    CTPN 模型权重文件路径
+        :param densenet_weight_path: Densenet 模型权重文件路径
+        :param dict_path:           字典文件路径
+        :param ctpn_config_path:    CTPN 模型配置文件路径
+        :param densenet_config_path: Densenet 模型配置文件路径
+        """
 
         self.id_to_char = load_dict(dict_path, encoding="utf-8")
 
@@ -114,6 +126,6 @@ if __name__ == '__main__':
                            ctpn_config_path="config/ctpn-default.json",
                            densenet_config_path="config/densent-default.json")
     start_time = datetime.now()
-    for line_no, line in app.detect("data/demo.jpg", False):
+    for rect, line in app.detect("data/demo.jpg", False):
         print(line)
     print(f"cost {(datetime.now() - start_time).microseconds / 1000}ms")

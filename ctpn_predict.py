@@ -6,7 +6,7 @@ import keras.backend as K
 from ctpn.lib.utils import get_session
 
 if __name__ == '__main__':
-    image_path = "data/demo.jpg"
+    image_path = "data/demo_02.jpg"
     config_path = "config/ctpn-default.json"
     weight_path = "model/weights-ctpnlstm-init.hdf5"
 
