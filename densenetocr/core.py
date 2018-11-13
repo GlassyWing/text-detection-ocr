@@ -142,10 +142,10 @@ class DenseNetOCR:
 
     def train(self, epochs, train_data_loader: DataLoader, valid_data_loader: DataLoader, **kwargs):
         self.parallel_model.fit_generator(generator=train_data_loader.load_data(), epochs=epochs,
-                                 steps_per_epoch=train_data_loader.steps_per_epoch,
-                                 validation_data=valid_data_loader.load_data(),
-                                 validation_steps=valid_data_loader.steps_per_epoch,
-                                 **kwargs)
+                                          steps_per_epoch=train_data_loader.steps_per_epoch,
+                                          validation_data=valid_data_loader.load_data(),
+                                          validation_steps=valid_data_loader.steps_per_epoch,
+                                          **kwargs)
 
     def predict(self, image, id_to_char):
         if type(image) == str:

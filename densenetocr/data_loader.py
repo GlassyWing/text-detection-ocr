@@ -46,7 +46,7 @@ class DataLoader:
                  labeled_file_path,
                  images_dir,
                  encoding='utf-8',
-                 blank_first=False,
+                 blank_first=True,
                  batch_size=64,
                  maxlen=10,
                  image_shape=(32, 280)):
