@@ -14,14 +14,13 @@ if __name__ == '__main__':
     parser.add_argument("-bs", "--batch_size", help="小批量处理大小", default=64, type=int)
     parser.add_argument("--epochs", help="迭代数", default=20, type=int)
     parser.add_argument("--gpus", help="gpu的数量", default=1, type=int)
-    parser.add_argument("--images_dir", help="图像位置", default="/home/sunsheenai/application/data/OCR/images",
-                        required=True)
+    parser.add_argument("--images_dir", help="图像位置", default="/home/sunsheenai/application/data/OCR/images")
     parser.add_argument("--dict_file_path", help="字典文件位置",
-                        default="/home/sunsheenai/application/data/OCR/char_std_5990.txt", required=True)
+                        default="/home/sunsheenai/application/data/OCR/char_std_5990.txt")
     parser.add_argument("--train_file_path", help="训练文件位置",
-                        default="/home/sunsheenai/application/data/OCR/train.txt", required=True)
+                        default="/home/sunsheenai/application/data/OCR/train.txt")
     parser.add_argument("--test_file_path", help="测试文件位置",
-                        default="/home/sunsheenai/application/data/OCR/test.txt", required=True)
+                        default="/home/sunsheenai/application/data/OCR/test.txt")
     parser.add_argument("--config_file_path", help="模型配置文件位置",
                         default="config/densent-default.json")
     parser.add_argument("--weights_file_path", help="模型初始权重文件位置",

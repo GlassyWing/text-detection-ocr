@@ -42,4 +42,5 @@ if __name__ == '__main__':
     ctpn.train(data_loader.load_data(),
                epochs=args.epochs,
                steps_per_epoch=data_loader.steps_per_epoch,
-               callbacks=[checkpoint, earlystop, lr_scheduler])
+               callbacks=[checkpoint, earlystop, lr_scheduler],
+               initial_epoch=args.initial_epoch)

@@ -147,7 +147,7 @@ if __name__ == '__main__':
     parser.add_argument("--densenet_weight_path", help="densenet模型权重文件位置",
                         default="model/weights-densent-init.hdf5")
     parser.add_argument("--adjust", help="是否对倾斜的文本进行旋转",
-                        default=False, type=bool)
+                        default=True, type=bool)
 
     args = parser.parse_args()
 
