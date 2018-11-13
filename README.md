@@ -92,6 +92,22 @@ ctpn 的训练需要传入2个必要参数：
 }
 ```
 
+训练情况：
+
+```sh
+...
+
+Epoch 17/20
+6000/6000 [==============================] - 4036s 673ms/step - loss: 0.0895 - rpn_class_loss: 0.0360 - rpn_regress_loss: 0.0534
+Epoch 18/20
+6000/6000 [==============================] - 4075s 679ms/step - loss: 0.0857 - rpn_class_loss: 0.0341 - rpn_regress_loss: 0.0516
+Epoch 19/20
+6000/6000 [==============================] - 4035s 673ms/step - loss: 0.0822 - rpn_class_loss: 0.0324 - rpn_regress_loss: 0.0498
+Epoch 20/20
+6000/6000 [==============================] - 4165s 694ms/step - loss: 0.0792 - rpn_class_loss: 0.0308 - rpn_regress_loss: 0.0484
+
+```
+
 ### Densenet 训练
 
 ```sh
@@ -147,6 +163,23 @@ Densnet 的训练需要4个必要参数：
   "weight_decay": 0.0001, // 权重衰减率
   "filters": 64         // 模型第一层的核数量
 }
+```
+
+训练情况：
+
+```sh
+Epoch 3/100
+25621/25621 [==============================] - 15856s 619ms/step - loss: 0.1035 - acc: 0.9816 - val_loss: 0.1060 - val_acc: 0.9823
+Epoch 4/100
+25621/25621 [==============================] - 15651s 611ms/step - loss: 0.0798 - acc: 0.9879 - val_loss: 0.0848 - val_acc: 0.9878
+Epoch 5/100
+25621/25621 [==============================] - 16510s 644ms/step - loss: 0.0732 - acc: 0.9889 - val_loss: 0.0815 - val_acc: 0.9881
+Epoch 6/100
+25621/25621 [==============================] - 15621s 610ms/step - loss: 0.0691 - acc: 0.9895 - val_loss: 0.0791 - val_acc: 0.9886
+Epoch 7/100
+25621/25621 [==============================] - 15782s 616ms/step - loss: 0.0666 - acc: 0.9899 - val_loss: 0.0787 - val_acc: 0.9887
+Epoch 8/100
+25621/25621 [==============================] - 15560s 607ms/step - loss: 0.0645 - acc: 0.9903 - val_loss: 0.0771 - val_acc: 0.9888
 ```
 
 ## 预测
@@ -221,7 +254,7 @@ python densenetocr_predict.py --image_path asset/demo_densenet.jpg
 
 <div>
     <img src="asset/demo_densenet.jpg" width="45%">
-    <img src="asset/demo_densenet_recognited.png" width="45%">
+    <img src="asset/demo_densenet_recognited.png" >
 </div>
 
 
