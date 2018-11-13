@@ -179,11 +179,11 @@ optional arguments:
 示例：
 
 ```sh
-python ctpn_predict.py --image_path asset/demo_ctpn.jpg --output_file_path asset/demo_ctpn_labeled.jpg
+python ctpn_predict.py --image_path asset/demo_ctpn.png --output_file_path asset/demo_ctpn_labeled.jpg
 ```
 
-<img src="asset/demo_ctpn.jpg" width=45%>
-<img src="asset/demo_ctpn_labeled.jpg" width=45%>
+<img src="asset/demo_ctpn.png" width="45%">
+<img src="asset/demo_ctpn_labeled.jpg" width="45%">
 
 ### Densenet 预测
 
@@ -217,8 +217,8 @@ optional arguments:
 python densenetocr_predict.py --image_path asset/demo_densenet.jpg
 ```
 
-<img src="asset/demo_densenet.jpg" width=50%>
-<img src="asset/demo_densenet_recognited.png">
+<img src="asset/demo_densenet.jpg" width="45%">
+<img src="asset/demo_densenet_recognited.png" width="45%">
 
 
 ## 文本检测与识别
@@ -261,10 +261,10 @@ optional arguments:
 示例：
 
 ```sh
-python text_detection_app.py  --image_path asset/demo_ctpn.jpg
+python text_detection_app.py  --image_path asset/demo_ctpn.png
 ```
-<img src="asset/demo_ctpn.jpg" width=45%>
-<img src="asset/text_detect_recognited.png" width=45%>
+<img src="asset/demo_ctpn.png" width="45%">
+<img src="asset/text_detect_recognited.png" width="45%">
 
 ## 其它
 
