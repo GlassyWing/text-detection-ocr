@@ -37,7 +37,7 @@ if __name__ == '__main__':
     checkpoint = SingleModelCK(r'model/weights-ctpnlstm-{epoch:02d}.hdf5', model=ctpn.model, save_weights_only=True)
     earlystop = EarlyStopping(patience=10)
     log = TensorBoard(log_dir='logs', histogram_freq=0, batch_size=1, write_graph=True, write_grads=False)
-    lr_scheduler = LRScheduler(lambda epoch, lr: lr / 2, watch="loss", watch_his_len=20)
+    lr_scheduler = LRScheduler(lambda epoch, lr: lr / 2, watch="loss", watch_his_len=2)
 
     ctpn.train(data_loader.load_data(),
                epochs=args.epochs,

@@ -87,7 +87,7 @@ if __name__ == '__main__':
                       write_grads=False)
 
     # 观测ctc损失的值，一旦损失回升，将学习率缩小一半
-    lr_scheduler = LRScheduler(lambda _, lr: lr / 2, watch="loss", watch_his_len=1)
+    lr_scheduler = LRScheduler(lambda _, lr: lr / 2, watch="loss", watch_his_len=2)
 
     ocr.train(epochs=args.epochs,
               train_data_loader=train_data_loader,
