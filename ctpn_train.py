@@ -19,6 +19,8 @@ if __name__ == '__main__':
                         default="config/ctpn-default.json")
     parser.add_argument("--weights_file_path", help="模型初始权重文件位置",
                         default=None)
+    parser.add_argument("--save_weights_file_path", help="保存模型训练权重文件位置",
+                        default=r'model/weights-ctpnlstm-{epoch:02d}.hdf5')
 
     args = parser.parse_args()
 
@@ -34,7 +36,7 @@ if __name__ == '__main__':
 
     data_loader = DataLoader(args.anno_dir, args.images_dir)
 
-    checkpoint = SingleModelCK(r'model/weights-ctpnlstm-{epoch:02d}.hdf5', model=ctpn.model, save_weights_only=True)
+    checkpoint = SingleModelCK(args.save_weights_file_path, model=ctpn.model, save_weights_only=True)
     earlystop = EarlyStopping(patience=10)
     log = TensorBoard(log_dir='logs', histogram_freq=0, batch_size=1, write_graph=True, write_grads=False)
     lr_scheduler = LRScheduler(lambda epoch, lr: lr / 2, watch="loss", watch_his_len=2)

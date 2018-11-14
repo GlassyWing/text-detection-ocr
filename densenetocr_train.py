@@ -25,6 +25,8 @@ if __name__ == '__main__':
                         default="config/densent-default.json")
     parser.add_argument("--weights_file_path", help="模型初始权重文件位置",
                         default=None)
+    parser.add_argument("--save_weights_file_path", help="保存模型训练权重文件位置",
+                        default=r'model/weights-densent-{epoch:02d}.hdf5')
 
     args = parser.parse_args()
 
@@ -77,7 +79,7 @@ if __name__ == '__main__':
 
     ocr = DenseNetOCR(**config)
 
-    checkpoint = SingleModelCK(r'model/weights-densent-{epoch:02d}.hdf5',
+    checkpoint = SingleModelCK(args.save_weights_file_path,
                                model=ocr.model,
                                save_weights_only=True)
 
