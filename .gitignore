@@ -2,3 +2,6 @@ data
 model
 logs
 .idea/
+tests/
+*.egg-info/
+dist/

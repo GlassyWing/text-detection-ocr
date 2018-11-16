@@ -1,2 +1,0 @@
-from ctpn.lib.other import Graph
-from ctpn.lib.text_proposal_connector_oriented import TextProposalConnectorOriented
