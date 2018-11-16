@@ -95,11 +95,11 @@ Python: 3.6
 
   ```
 
-1. ctpn模型权重文件位置不指定默认使用`model/weights-ctpnlstm-init.hdf5`
+1. ctpn模型权重文件位置不指定默认使用`weights/weights-ctpnlstm-init.hdf5`
 2. ctpn模型配置文件位置不指定默认使用`config/ctpn-default.json`
-3. densenet模型权重文件位置不指定默认使用`model/weights-densent-init.hdf5`
+3. densenet模型权重文件位置不指定默认使用`weights/weights-densent-init.hdf5`
 4. densenet模型配置文件位置不指定默认使用`config/densent-default.json`
-5. 字典文件位置不指定默认使用`data/char_std_5990.txt`
+5. 字典文件位置不指定默认使用`dictionary/char_std_5990.txt`
 
 示例：
 

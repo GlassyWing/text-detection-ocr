@@ -4,7 +4,7 @@ setup(name='dlocr',
 
       version='0.1',
 
-      url='https://github.com/GlassyWing/text-detection-dlocr',
+      url='https://github.com/GlassyWing/text-detection-ocr',
 
       license='Apache 2.0',
 
