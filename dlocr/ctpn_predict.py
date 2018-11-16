@@ -2,7 +2,7 @@ from datetime import datetime
 
 import keras.backend as K
 
-from dlocr.ctpn import default_ctpn_weight_path, default_ctpn_config_path, CTPN
+from dlocr.ctpn import default_ctpn_weight_path, default_ctpn_config_path, get_or_create
 from dlocr.ctpn import get_session
 
 if __name__ == '__main__':
@@ -26,11 +26,13 @@ if __name__ == '__main__':
     weight_path = args.weights_file_path  # 模型权重位置
     output_file_path = args.output_file_path  # 保存标记文件位置
 
-    config = CTPN.load_config(config_path)
-    if weight_path is not None:
-        config['weight_path'] = weight_path
+    ctpn = get_or_create(config_path, weight_path)
 
-    ctpn = CTPN(**config)
+    if weight_path is not None:
+        ctpn = get_or_create(config_path, weight_path)
+    else:
+        ctpn = get_or_create(config_path)
+
     start_time = datetime.now()
     ctpn.predict(image_path, output_path=output_file_path)
     print(f"cost {(datetime.now() - start_time).microseconds / 1000} ms")

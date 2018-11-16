@@ -2,7 +2,7 @@ import argparse
 from datetime import datetime
 
 from dlocr.ctpn.lib.utils import get_session
-from dlocr.densenet import DenseNetOCR
+from dlocr.densenet import get_or_create
 from dlocr.densenet.data_loader import load_dict
 import keras.backend as K
 
@@ -28,11 +28,11 @@ if __name__ == '__main__':
 
     id_to_char = load_dict(dict_file_path, "UTF-8")
 
-    config = DenseNetOCR.load_config(config_path)
-    config['weight_path'] = weight_path
-
-    ocr = DenseNetOCR(**config)
+    if weight_path is not None:
+        densenet = get_or_create(config_path, weight_path)
+    else:
+        densenet = get_or_create(config_path)
 
     start = datetime.now()
-    print(ocr.predict(image_path, id_to_char)[0])
+    print(densenet.predict(image_path, id_to_char)[0])
     print(f"cost {(datetime.now() - start).microseconds / 1000} ms")
