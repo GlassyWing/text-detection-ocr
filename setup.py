@@ -12,7 +12,9 @@ setup(name='dlocr',
 
       author_email='dengjiaxim@gmail.com',
 
-      description='dlocr base on deep learning',
+      description='ocr base on deep learning',
+
+      keywords='OCR,detect,Chinese word recognition',
 
       packages=find_packages(exclude=['tests', 'tools']),
 
