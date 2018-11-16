@@ -46,12 +46,23 @@ Python: 3.6
 - 编程方式
 
   ```python
-  from dlocr import ocr
+  import dlocr
 
   if __name__ == '__main__':
-      for rect, line in ocr.detect("asset/demo_ctpn.png"):
-          print(line)
+    ocr = dlocr.get_or_create()
+    for rect, line in ocr.detect("asset/demo_ctpn.png"):
+        print(line)
   ```
+
+  `get_or_create()` 支持以下参数用于使用自己训练的模型：
+
+  - ctpn_weight_path
+  - ctpn_config_path
+  - densenet_weight_path
+  - densenet_config_path
+  - dict_path
+
+   参数说明：见以下命令行方式中的参数说明。
 
 - 命令行方式
 
@@ -107,9 +118,10 @@ python -m dlocr  --image_path asset/demo_ctpn.png
 - 编程方式
 
   ```python
-  from dlocr.ctpn import ctpn
+  from dlocr import ctpn
 
   if __name__ == '__main__':
+      ctpn = ctpn.get_or_create()
       ctpn.predict("asset/demo_ctpn.png", "asset/demo_ctpn_labeled.jpg")
   ```
 
@@ -156,10 +168,12 @@ python -m dlocr  --image_path asset/demo_ctpn.png
 - 编程方式
 
   ```python
-  from dlocr.densenet import densenet, load_dict, default_dict_path
+  from dlocr.densenet import load_dict, default_dict_path
+  from dlocr import densenet
 
   if __name__ == '__main__':
-      text, img = densenet.predict("../asset/demo_densenet.jpg", load_dict(default_dict_path))
+      densenet = densenet.get_or_create()
+      text, img = densenet.predict("asset/demo_densenet.jpg", load_dict(default_dict_path))
       print(text)
   ```
 
