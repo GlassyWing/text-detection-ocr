@@ -1,3 +1,5 @@
+import os
+
 import keras.backend as K
 from keras.callbacks import EarlyStopping, TensorBoard
 
@@ -54,6 +56,15 @@ if __name__ == '__main__':
     dict_file_path = args.dict_file_path
     train_labeled_file_path = args.train_file_path
     test_labeled_file_path = args.test_file_path
+    save_weights_file_path = args.save_weights_file_path
+
+    if save_weights_file_path is None:
+        try:
+            if not os.path.exists("model"):
+                os.makedirs("model")
+            save_weigths_file_path = "model/weights-densent-{epoch:02d}.hdf5"
+        except OSError:
+            print('Error: Creating directory. ' + "model")
 
     # 测试
     # images_dir = "E:\data\images"
@@ -81,7 +92,7 @@ if __name__ == '__main__':
 
     ocr = DenseNetOCR(**config)
 
-    checkpoint = SingleModelCK(args.save_weights_file_path,
+    checkpoint = SingleModelCK(save_weights_file_path,
                                model=ocr.model,
                                save_weights_only=True)
 
