@@ -1,5 +1,5 @@
 import json
-import os
+from concurrent.futures import ThreadPoolExecutor
 
 import keras.backend as K
 import numpy as np
@@ -55,6 +55,40 @@ def _transition_block(input, nb_filter, dropout_rate=None, pooltype=1, weight_de
 def _ctc_loss(args):
     labels, y_pred, input_length, label_length = args
     return K.ctc_batch_cost(labels, y_pred, input_length, label_length)
+
+
+def single_img_process(img):
+    im = img.convert('L')
+    scale = im.size[1] * 1.0 / 32
+    w = im.size[0] / scale
+    w = int(w)
+
+    im = im.resize((w, 32), Image.ANTIALIAS)
+    img = np.array(im).astype(np.float32) / 255.0 - 0.5
+    img = img.reshape((32, w, 1))
+    return img
+
+
+def pad_img(img, len, value):
+    out = np.ones(shape=(32, len, 1)) * value
+    out[:, :img.shape[1], :] = img
+    return out
+
+
+def process_imgs(imgs):
+    tmp = []
+    with ThreadPoolExecutor() as executor:
+        for img in executor.map(single_img_process, imgs):
+            tmp.append(img)
+
+    max_len = max([img.shape[1] for img in tmp])
+
+    output = []
+    with ThreadPoolExecutor() as executor:
+        for img in executor.map(lambda img: pad_img(img, max_len, 0.5), tmp):
+            output.append(img)
+
+    return np.array(output)
 
 
 class DenseNetOCR:
@@ -164,13 +198,27 @@ class DenseNetOCR:
         X = np.array([X])
 
         y_pred = self.base_model.predict(X)
-        argmax = np.argmax(y_pred, axis=2)[0]
 
         y_pred = y_pred[:, :, :]
         out = K.get_value(K.ctc_decode(y_pred, input_length=np.ones(y_pred.shape[0]) * y_pred.shape[1], )[0][0])[:, :]
         out = u''.join([id_to_char[x] for x in out[0]])
 
         return out, im
+
+    def predict_multi(self, images, id_to_char):
+
+        def single_text(out):
+            return u''.join(['' if x == -1 else id_to_char[x] for x in out])
+
+        X = process_imgs(images)
+        y_pred = self.base_model.predict_on_batch(X)
+        outs = K.get_value(K.ctc_decode(y_pred, input_length=np.ones(y_pred.shape[0]) * y_pred.shape[1], )[0][0])[:, :]
+        texts = []
+        with ThreadPoolExecutor() as executor:
+            for text in executor.map(single_text, outs):
+                texts.append(text)
+
+        return texts
 
     @staticmethod
     def save_config(obj, config_path: str):

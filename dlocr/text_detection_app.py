@@ -1,3 +1,5 @@
+import os
+from concurrent.futures import ThreadPoolExecutor
 from math import *
 
 import cv2
@@ -7,7 +9,6 @@ from PIL import Image
 from dlocr.ctpn import CTPN
 from dlocr.densenet import DenseNetOCR
 from dlocr.densenet import load_dict
-import os
 
 
 def dumpRotateImage(img, degree, pt1, pt2, pt3, pt4):
@@ -65,21 +66,36 @@ def single_text_detect(rec, ocr, id_to_char, img, adjust):
     return image, text
 
 
-def model(ctpn, ocr, id_to_char, image_path, adjust):
-    text_recs, img = ctpn.predict(image_path, mode=2)  # 得到所有的检测框
-    text_recs = sort_box(text_recs)
-    results = []
+def clip_single_img(bbox, img, xDim, yDim, adjust):
+    xlength = int((bbox[2] - bbox[0]) * 0.1)
+    ylength = int((bbox[3] - bbox[1]) * 0.2)
+    if adjust:
+        pt1 = (max(1, bbox[0] - xlength), max(1, bbox[1] - ylength))
+        pt2 = (bbox[2], bbox[3])
+        pt3 = (min(bbox[6] + xlength, xDim - 2), min(yDim - 2, bbox[7] + ylength))
+        pt4 = (bbox[4], bbox[5])
+    else:
+        pt1 = (max(1, bbox[0]), max(1, bbox[1]))
+        pt2 = (bbox[2], bbox[3])
+        pt3 = (min(bbox[6], xDim - 2), min(yDim - 2, bbox[7]))
+        pt4 = (bbox[4], bbox[5])
 
-    for index, rec in enumerate(text_recs):
-        image, text = single_text_detect(rec, ocr, id_to_char, img, adjust)  # 识别文字
-        # plt.subplot(len(text_recs), 1, index + 1)
-        # plt.imshow(image)
-        if text is not None and len(text) > 0:
-            results.append((rec, text))
+    degree = degrees(atan2(pt2[1] - pt1[1], pt2[0] - pt1[0]))  # 图像倾斜角度
 
-    # plt.show()
+    partImg = dumpRotateImage(img, degree, pt1, pt2, pt3, pt4)
+    image = Image.fromarray(partImg)
+    return image
 
-    return results
+
+def clip_imgs_with_bboxes(bboxes, img, adjust):
+    xDim, yDim = img.shape[1], img.shape[0]
+
+    imgs = []
+    with ThreadPoolExecutor() as executor:
+        for img in executor.map(lambda t: clip_single_img(t[0], t[1], xDim, yDim, adjust),
+                                map(lambda bbox: (bbox, img), bboxes)):
+            imgs.append(img)
+    return imgs
 
 
 class TextDetectionApp:
@@ -117,16 +133,30 @@ class TextDetectionApp:
         else:
             self.ocr = DenseNetOCR(num_classes=len(self.id_to_char))
 
-    def detect(self, image_path, adjust=True):
+    def detect(self, image_path, adjust=True, parallel=True):
         """
 
+        :param parallel: 是否并行处理
         :param image_path: 图像路径
         :param adjust: 是否调整检测框
         :return:
         """
         if not os.path.exists(image_path):
             raise ValueError(f"The image path: {image_path} not exists!")
-        return model(self.ctpn, self.ocr, self.id_to_char, image_path, adjust)
+        text_recs, img = self.ctpn.predict(image_path, mode=2)  # 得到所有的检测框
+        text_recs = sort_box(text_recs)
 
+        if parallel:
+            imgs = clip_imgs_with_bboxes(text_recs, img, adjust)
 
+            texts = self.ocr.predict_multi(imgs, id_to_char=self.id_to_char)
+        else:
+            texts = []
+            for index, rec in enumerate(text_recs):
+                image, text = single_text_detect(rec, self.ocr, self.id_to_char, img, adjust)  # 识别文字
+                # plt.subplot(len(text_recs), 1, index + 1)
+                # plt.imshow(image)
+                if text is not None and len(text) > 0:
+                    texts.append(text)
 
+        return text_recs, texts

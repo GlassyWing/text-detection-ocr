@@ -1,9 +1,10 @@
 import argparse
-from datetime import datetime
+import time
 
 import keras.backend as K
 
-from dlocr import default_dict_path, default_densenet_config_path, default_densenet_weight_path, default_ctpn_config_path, \
+from dlocr import default_dict_path, default_densenet_config_path, default_densenet_weight_path, \
+    default_ctpn_config_path, \
     default_ctpn_weight_path, get_session, TextDetectionApp
 
 if __name__ == '__main__':
@@ -30,7 +31,7 @@ if __name__ == '__main__':
                            dict_path=args.dict_file_path,
                            ctpn_config_path=args.ctpn_config_path,
                            densenet_config_path=args.densenet_config_path)
-    start_time = datetime.now()
-    for rect, line in app.detect(args.image_path, args.adjust):
-        print(line)
-    print(f"cost {(datetime.now() - start_time).microseconds / 1000}ms")
+    start_time = time.time()
+    _, texts = app.detect(args.image_path, args.adjust)
+    print('\n'.join(texts))
+    print(f"cost {(time.time() - start_time) * 1000}ms")
