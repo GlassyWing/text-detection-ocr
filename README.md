@@ -46,12 +46,16 @@ Python: 3.6
 - 编程方式
 
   ```python
+  import time
   import dlocr
 
   if __name__ == '__main__':
-    ocr = dlocr.get_or_create()
-    for rect, line in ocr.detect("asset/demo_ctpn.png"):
-        print(line)
+      ocr = dlocr.get_or_create()
+      start = time.time()
+
+      bboxes, texts = ocr.detect("../asset/demo_ctpn.png")
+      print('\n'.join(texts))
+      print(f"cost: {(time.time() - start) * 1000}ms")
   ```
 
   `get_or_create()` 支持以下参数用于使用自己训练的模型：
