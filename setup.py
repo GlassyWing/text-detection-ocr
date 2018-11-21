@@ -24,6 +24,6 @@ setup(name='dlocr',
 
       zip_safe=False,
 
-      setup_requires=['pandas', 'keras', 'xmltodict', 'opencv-python', 'matplotlib', 'pillow'],
+      install_requires=['pandas', 'keras', 'xmltodict', 'opencv-python', 'matplotlib', 'pillow'],
 
       )
