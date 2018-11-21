@@ -1,12 +1,12 @@
 import argparse
-from datetime import datetime
+import time
 
-from dlocr.ctpn.lib.utils import get_session
-from dlocr.densenet import get_or_create
-from dlocr.densenet.data_loader import load_dict
 import keras.backend as K
 
+from dlocr.ctpn.lib.utils import get_session
 from dlocr.densenet import default_densenet_weight_path, default_densenet_config_path, default_dict_path
+from dlocr.densenet import get_or_create
+from dlocr.densenet.data_loader import load_dict
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -33,6 +33,6 @@ if __name__ == '__main__':
     else:
         densenet = get_or_create(config_path)
 
-    start = datetime.now()
-    print(densenet.predict(image_path, id_to_char)[0])
-    print(f"cost {(datetime.now() - start).microseconds / 1000} ms")
+    start = time.time()
+    print('\n'.join(densenet.predict(image_path, id_to_char)[1]))
+    print(f"cost {(time.time() - start) * 1000} ms")

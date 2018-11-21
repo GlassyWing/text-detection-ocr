@@ -1,4 +1,4 @@
-from datetime import datetime
+import time
 
 import keras.backend as K
 
@@ -33,6 +33,6 @@ if __name__ == '__main__':
     else:
         ctpn = get_or_create(config_path)
 
-    start_time = datetime.now()
+    start_time = time.time()
     ctpn.predict(image_path, output_path=output_file_path)
-    print(f"cost {(datetime.now() - start_time).microseconds / 1000} ms")
+    print(f"cost {(time.time() - start_time) * 1000} ms")
