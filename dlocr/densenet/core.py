@@ -91,6 +91,27 @@ def process_imgs(imgs):
     return np.array(output)
 
 
+def decode_single_line(pred_text, nclass, id_to_char):
+    char_list = []
+    for i in range(len(pred_text)):
+        if pred_text[i] != nclass - 1 and (
+                (not (i > 0 and pred_text[i] == pred_text[i - 1])) or (i > 1 and pred_text[i] == pred_text[i - 2])):
+            char_list.append(id_to_char[pred_text[i]])
+    return u''.join(char_list)
+
+
+def decode(pred, nclass, id_to_char):
+    lines = []
+
+    pred_texts = pred.argmax(axis=2)
+
+    with ThreadPoolExecutor() as executor:
+        for line in executor.map(lambda pred_text: decode_single_line(pred_text, nclass, id_to_char), pred_texts):
+            lines.append(line)
+
+    return lines
+
+
 class DenseNetOCR:
 
     def __init__(self,
@@ -212,13 +233,13 @@ class DenseNetOCR:
 
         X = process_imgs(images)
         y_pred = self.base_model.predict_on_batch(X)
-        outs = K.get_value(K.ctc_decode(y_pred, input_length=np.ones(y_pred.shape[0]) * y_pred.shape[1], )[0][0])[:, :]
-        texts = []
-        with ThreadPoolExecutor() as executor:
-            for text in executor.map(single_text, outs):
-                texts.append(text)
+        # outs = K.get_value(K.ctc_decode(y_pred, input_length=np.ones(y_pred.shape[0]) * y_pred.shape[1], )[0][0])[:, :]
+        # texts = []
+        # with ThreadPoolExecutor() as executor:
+        #     for text in executor.map(single_text, outs):
+        #         texts.append(text)
 
-        return texts
+        return decode(y_pred, self.num_classes, id_to_char)
 
     @staticmethod
     def save_config(obj, config_path: str):
