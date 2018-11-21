@@ -11,8 +11,8 @@ from keras.layers import Conv2D, Lambda, Bidirectional, GRU, Activation
 from keras.optimizers import Adam
 from keras.utils import multi_gpu_model
 
-from dlocr.ctpn.lib.text_proposal_connector_oriented import TextProposalConnectorOriented
 from dlocr.ctpn.lib import utils
+from dlocr.ctpn.lib.text_proposal_connector_oriented import TextProposalConnectorOriented
 
 
 def _rpn_loss_regr(y_true, y_pred):
@@ -72,6 +72,13 @@ def _reshape3(x):
     b = tf.shape(x)
     x = tf.reshape(x, [b[0], b[1] * b[2] * 10, 2])  # (N, H x W x 10, 2)
     return x
+
+
+def draw_rect(rect, img):
+    cv2.line(img, (rect[0], rect[1]), (rect[2], rect[3]), (255, 0, 0), 2)
+    cv2.line(img, (rect[2], rect[3]), (rect[6], rect[7]), (255, 0, 0), 2)
+    cv2.line(img, (rect[6], rect[7]), (rect[4], rect[5]), (255, 0, 0), 2)
+    cv2.line(img, (rect[4], rect[5]), (rect[0], rect[1]), (255, 0, 0), 2)
 
 
 class CTPN:
@@ -140,7 +147,7 @@ class CTPN:
         m_img = img - utils.IMAGE_MEAN
         m_img = np.expand_dims(m_img, axis=0)
 
-        cls, regr, cls_prod = self.predict_model.predict(m_img)
+        cls, regr, cls_prod = self.predict_model.predict_on_batch(m_img)
         anchor = utils.gen_anchor((int(h / 16), int(w / 16)), 16)
 
         bbox = utils.bbox_transfor_inv(anchor, regr)
@@ -170,15 +177,9 @@ class CTPN:
 
         text = text.astype('int32')
 
-        def draw_rect(rect):
-            cv2.line(img, (rect[0], rect[1]), (rect[2], rect[3]), (255, 0, 0), 2)
-            cv2.line(img, (rect[2], rect[3]), (rect[6], rect[7]), (255, 0, 0), 2)
-            cv2.line(img, (rect[6], rect[7]), (rect[4], rect[5]), (255, 0, 0), 2)
-            cv2.line(img, (rect[4], rect[5]), (rect[0], rect[1]), (255, 0, 0), 2)
-
         if mode == 1:
             for i in text:
-                draw_rect(i)
+                draw_rect(i, img)
 
             plt.imshow(img)
             plt.show()

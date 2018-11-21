@@ -220,24 +220,21 @@ class DenseNetOCR:
 
         y_pred = self.base_model.predict(X)
 
-        y_pred = y_pred[:, :, :]
-        out = K.get_value(K.ctc_decode(y_pred, input_length=np.ones(y_pred.shape[0]) * y_pred.shape[1], )[0][0])[:, :]
-        out = u''.join([id_to_char[x] for x in out[0]])
+        y_pred = y_pred.argmax(axis=2)
+        out = decode_single_line(y_pred[0], self.num_classes, id_to_char)
 
         return out, im
 
     def predict_multi(self, images, id_to_char):
-
-        def single_text(out):
-            return u''.join(['' if x == -1 else id_to_char[x] for x in out])
+        """
+        Predict multi images
+        :param images: [Image]
+        :param id_to_char:
+        :return:
+        """
 
         X = process_imgs(images)
         y_pred = self.base_model.predict_on_batch(X)
-        # outs = K.get_value(K.ctc_decode(y_pred, input_length=np.ones(y_pred.shape[0]) * y_pred.shape[1], )[0][0])[:, :]
-        # texts = []
-        # with ThreadPoolExecutor() as executor:
-        #     for text in executor.map(single_text, outs):
-        #         texts.append(text)
 
         return decode(y_pred, self.num_classes, id_to_char)
 
