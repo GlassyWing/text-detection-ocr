@@ -93,9 +93,11 @@ def process_imgs(imgs):
 
 def decode_single_line(pred_text, nclass, id_to_char):
     char_list = []
+
+    pred_text = pred_text[np.where(pred_text != nclass - 1)[0]]
+
     for i in range(len(pred_text)):
-        if pred_text[i] != nclass - 1 and (
-                (not (i > 0 and pred_text[i] == pred_text[i - 1])) or (i > 1 and pred_text[i] == pred_text[i - 2])):
+        if (pred_text[i] != pred_text[i - 1]) or (i > 1 and pred_text[i] == pred_text[i - 2]):
             char_list.append(id_to_char[pred_text[i]])
     return u''.join(char_list)
 
