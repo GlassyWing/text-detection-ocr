@@ -144,6 +144,10 @@ class TextDetectionApp:
         if not os.path.exists(image_path):
             raise ValueError(f"The image path: {image_path} not exists!")
         text_recs, img = self.ctpn.predict(image_path, mode=2)  # 得到所有的检测框
+
+        if len(text_recs) == 0:
+            return [], []
+
         text_recs = sort_box(text_recs)
 
         if parallel:
