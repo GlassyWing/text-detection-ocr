@@ -141,7 +141,7 @@ class CTPN:
         self.parallel_model.fit_generator(train_data_generator, epochs=epochs, **kwargs)
 
     def predict(self, image_path, output_path=None, mode=1):
-        img = cv2.imread(image_path)
+        img = cv2.imdecode(np.fromfile(image_path, dtype=np.uint8), cv2.IMREAD_COLOR)
         h, w, c = img.shape
         # zero-center by mean pixel
         m_img = img - utils.IMAGE_MEAN
