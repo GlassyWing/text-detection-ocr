@@ -149,11 +149,11 @@ class CTPN:
         if h < 16 or w < 16:
             transform_w = max(16, w)
             transform_h = max(16, h)
-            transform_img = np.ones(shape=(transform_h, transform_w, 3)) * 255
+            transform_img = np.ones(shape=(transform_h, transform_w, 3), dtype='uint8') * 255
             transform_img[:h, :w, :] = img
-            img = transform_img
             h = transform_h
             w = transform_w
+            img = transform_img
 
         # zero-center by mean pixel
         m_img = img - utils.IMAGE_MEAN
