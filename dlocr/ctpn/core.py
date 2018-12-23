@@ -143,6 +143,18 @@ class CTPN:
     def predict(self, image_path, output_path=None, mode=1):
         img = cv2.imdecode(np.fromfile(image_path, dtype=np.uint8), cv2.IMREAD_COLOR)
         h, w, c = img.shape
+
+        # image size length must be greater than or equals 16 x 16,
+        # because of the image will be reduced by 16 times.
+        if h < 16 or w < 16:
+            transform_w = max(16, w)
+            transform_h = max(16, h)
+            transform_img = np.ones(shape=(transform_h, transform_w, 3)) * 255
+            transform_img[:h, :w, :] = img
+            img = transform_img
+            h = transform_h
+            w = transform_w
+
         # zero-center by mean pixel
         m_img = img - utils.IMAGE_MEAN
         m_img = np.expand_dims(m_img, axis=0)
