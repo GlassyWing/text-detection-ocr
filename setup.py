@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(name='dlocr',
 
-      version='0.1',
+      version='0.1-SNAPSHOT',
 
       url='https://github.com/GlassyWing/text-detection-ocr',
 
