@@ -1,6 +1,9 @@
 import os
 from concurrent.futures import ThreadPoolExecutor
 from math import *
+from multiprocessing import Lock
+from dlocr.ctpn import default_ctpn_weight_path, default_ctpn_config_path
+from dlocr.densenet import default_densenet_weight_path, default_densenet_config_path, default_dict_path
 
 import cv2
 import numpy as np
@@ -99,6 +102,8 @@ def clip_imgs_with_bboxes(bboxes, img, adjust):
 
 
 class TextDetectionApp:
+    __lock = Lock()
+    __ocr = None
 
     def __init__(self,
                  ctpn_weight_path,
@@ -164,3 +169,24 @@ class TextDetectionApp:
                     texts.append(text)
 
         return text_recs, texts
+
+    @staticmethod
+    def get_or_create(ctpn_weight_path=default_ctpn_weight_path,
+                      ctpn_config_path=default_ctpn_config_path,
+                      densenet_weight_path=default_densenet_weight_path,
+                      densenet_config_path=default_densenet_config_path,
+                      dict_path=default_dict_path):
+
+        TextDetectionApp.__lock.acquire()
+        try:
+            if TextDetectionApp.__ocr is None:
+                TextDetectionApp.__ocr = TextDetectionApp(ctpn_weight_path=ctpn_weight_path,
+                                                          ctpn_config_path=ctpn_config_path,
+                                                          densenet_weight_path=densenet_weight_path,
+                                                          densenet_config_path=densenet_config_path,
+                                                          dict_path=dict_path)
+        except Exception as e:
+            print(e)
+        finally:
+            TextDetectionApp.__lock.release()
+        return TextDetectionApp.__ocr
