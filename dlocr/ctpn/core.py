@@ -140,8 +140,12 @@ class CTPN:
     def train(self, train_data_generator, epochs, **kwargs):
         self.parallel_model.fit_generator(train_data_generator, epochs=epochs, **kwargs)
 
-    def predict(self, image_path, output_path=None, mode=1):
-        img = cv2.imdecode(np.fromfile(image_path, dtype=np.uint8), cv2.IMREAD_COLOR)
+    def predict(self, image, output_path=None, mode=1):
+
+        if type(image) == str:
+            img = cv2.imdecode(np.fromfile(image, dtype=np.uint8), cv2.IMREAD_COLOR)
+        else:
+            img = image
         h, w, c = img.shape
 
         # image size length must be greater than or equals 16 x 16,
