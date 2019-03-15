@@ -35,4 +35,4 @@ if __name__ == '__main__':
 
     start_time = time.time()
     ctpn.predict(image_path, output_path=output_file_path)
-    print(f"cost {(time.time() - start_time) * 1000} ms")
+    print("cost ", (time.time() - start_time) * 1000, " ms")

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import argparse
 import time
 
@@ -9,7 +10,7 @@ from dlocr import default_dict_path, default_densenet_config_path, default_dense
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("--image_path", help="图像位置")
+    parser.add_argument("--image_path", help="图像位置", required=True)
     parser.add_argument("--dict_file_path", help="字典文件位置", default=default_dict_path)
     parser.add_argument("--densenet_config_path", help="densenet模型配置文件位置",
                         default=default_densenet_config_path)
@@ -34,4 +35,4 @@ if __name__ == '__main__':
     start_time = time.time()
     _, texts = app.detect(args.image_path, args.adjust)
     print('\n'.join(texts))
-    print(f"cost {(time.time() - start_time) * 1000}ms")
+    print("cost", (time.time() - start_time) * 1000, "ms")

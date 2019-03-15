@@ -149,7 +149,7 @@ class TextDetectionApp:
 
         if type(image) == str:
             if not os.path.exists(image):
-                raise ValueError(f"The image path: {image} not exists!")
+                raise ValueError("The image path: " + image + " not exists!")
         text_recs, img = self.ctpn.predict(image, mode=2)  # 得到所有的检测框
 
         if len(text_recs) == 0:

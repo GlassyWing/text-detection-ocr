@@ -35,4 +35,4 @@ if __name__ == '__main__':
 
     start = time.time()
     print('\n'.join(densenet.predict(image_path, id_to_char)[1]))
-    print(f"cost {(time.time() - start) * 1000} ms")
+    print("cost ",(time.time() - start) * 1000," ms")
