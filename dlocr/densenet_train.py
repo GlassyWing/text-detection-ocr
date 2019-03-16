@@ -18,19 +18,17 @@ if __name__ == '__main__':
     parser.add_argument("-bs", "--batch_size", help="小批量处理大小", default=64, type=int)
     parser.add_argument("--epochs", help="迭代数", default=20, type=int)
     parser.add_argument("--gpus", help="gpu的数量", default=1, type=int)
-    parser.add_argument("--images_dir", help="图像位置", default="/home/sunsheenai/application/data/OCR/images")
+    parser.add_argument("--images_dir", help="图像位置", required=True)
     parser.add_argument("--dict_file_path", help="字典文件位置",
-                        default="/home/sunsheenai/application/data/OCR/char_std_5990.txt")
-    parser.add_argument("--train_file_path", help="训练文件位置",
-                        default="/home/sunsheenai/application/data/OCR/train.txt")
-    parser.add_argument("--test_file_path", help="测试文件位置",
-                        default="/home/sunsheenai/application/data/OCR/test.txt")
+                        default="./dictionary/dict.json")
+    parser.add_argument("--train_file_path", help="训练文件位置", required=True)
+    parser.add_argument("--test_file_path", help="测试文件位置", required=True)
     parser.add_argument("--config_file_path", help="模型配置文件位置",
                         default=default_densenet_config_path)
     parser.add_argument("--weights_file_path", help="模型初始权重文件位置",
                         default=None)
     parser.add_argument("--save_weights_file_path", help="保存模型训练权重文件位置",
-                        default=r'model/weights-densent-{epoch:02d}.hdf5')
+                        default=r'../model/weights-densent-{epoch:02d}.hdf5')
 
     args = parser.parse_args()
 
@@ -78,8 +76,7 @@ if __name__ == '__main__':
                                    image_shape=(32, 280),
                                    encoding=encoding,
                                    maxlen=config['maxlen'],
-                                   batch_size=batch_size,
-                                   blank_first=True)
+                                   batch_size=batch_size)
 
     valid_data_loader = DataLoader(images_dir=images_dir,
                                    dict_file_path=dict_file_path,
@@ -87,8 +84,7 @@ if __name__ == '__main__':
                                    image_shape=(32, 280),
                                    encoding=encoding,
                                    batch_size=batch_size,
-                                   maxlen=config['maxlen'],
-                                   blank_first=True)
+                                   maxlen=config['maxlen'])
 
     ocr = DenseNetOCR(**config)
 

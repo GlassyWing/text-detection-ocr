@@ -5,6 +5,9 @@ from PIL import Image
 
 from pathlib import Path
 
+from keras_preprocessing.text import Tokenizer
+from dlocr.utils import load_dictionary
+
 
 class _RandomUniformSelector:
 
@@ -28,49 +31,26 @@ class _RandomUniformSelector:
         return r_n
 
 
-def load_dict(dict_file_path, encoding="utf-8", blank_first=True):
-    with open(dict_file_path, encoding=encoding, mode='r') as f:
-        chars = list(map(lambda char: char.strip('\r\n'), f.readlines()))
-
-    if blank_first:
-        chars = chars[1:] + ['blank']
-
-    dict = {i: v for i, v in enumerate(chars)}
-
-    return dict
-
-
 class DataLoader:
 
     def __init__(self, dict_file_path,
                  labeled_file_path,
                  images_dir,
                  encoding='utf-8',
-                 blank_first=True,
                  batch_size=64,
-                 maxlen=10,
+                 maxlen=11,
                  image_shape=(32, 280)):
         self.images_dir = images_dir
-        self.blank_first = blank_first
         self.maxlen = maxlen
         self.image_shape = image_shape
-        self.id_to_dict = self.__load_dict(dict_file_path, encoding)
-        self.num_classes = len(self.id_to_dict)
+        self.tokenizer: Tokenizer = load_dictionary(dict_file_path, encoding=encoding)
+        self.num_classes = len(self.tokenizer.word_index)
         self.batch_size = batch_size
         self.image_label = self.__load_labeled_file(labeled_file_path, encoding)
         self.image_files = list(self.image_label.keys())
         self.total_size = len(self.image_files)
         self.random_uniform_selector = _RandomUniformSelector(self.total_size)
         self.steps_per_epoch = self.total_size // self.batch_size
-
-    def __load_dict(self, dict_file_path, encoding='utf-8'):
-        with open(dict_file_path, encoding=encoding, mode='r') as f:
-            chars = list(map(lambda char: char.strip('\r\n'), f.readlines()))
-
-        if self.blank_first:
-            chars = chars[1:] + ['blank']
-
-        return {i: v for i, v in enumerate(chars)}
 
     def __load_labeled_file(self, labeled_file_path, encoding='utf-8'):
         dic = {}
@@ -90,12 +70,10 @@ class DataLoader:
             img = np.expand_dims(img, axis=2)
             label_len = np.array([len(image_label)])
             input_len = np.array([self.image_shape[1] // 8])
-            label = np.ones([self.maxlen]) * self.num_classes
 
-            if self.blank_first:
-                label[0: len(image_label)] = [int(i) - 1 for i in image_label]
-            else:
-                label[0: len(image_label)] = [int(i) for i in image_label]
+            label = np.ones([self.maxlen], dtype=np.int32) * (self.num_classes - 1)
+
+            label[: len(image_label)] = [int(i) for i in image_label]
 
             return img, label_len, input_len, label
 
@@ -125,11 +103,13 @@ class DataLoader:
 
 
 if __name__ == '__main__':
-    train_data_loader = DataLoader(images_dir="E:/data/images",
-                                   dict_file_path="../data/char_std_5990.txt",
-                                   labeled_file_path="../data/test.txt",
+    train_data_loader = DataLoader(images_dir="G:/data/text-recognition/chinese_imgs/default",
+                                   dict_file_path="../dictionary/dict.json",
+                                   labeled_file_path="G:/data/text-recognition/chinese_imgs/default/tmp_labels_train.txt",
                                    image_shape=(32, 280),
-                                   encoding="UTF-8",
-                                   blank_first=True)
-    # x, label = next(train_data_loader.load_data())
+                                   encoding="UTF-8")
+    x, label = next(train_data_loader.load_data())
+    print(x['the_input'].shape)
+    print(x['the_labels'][4])
+    print(train_data_loader.tokenizer.sequences_to_texts([x['the_labels'][4]]))
     print(train_data_loader.total_size)
