@@ -16,7 +16,7 @@ class DataLoader:
         self.batch_size = 1
 
         # list xml
-        self.xmlfiles = glob(f'{anno_dir}/*.xml')
+        self.xmlfiles = glob(anno_dir + '/*.xml')
         self.total_size = len(self.xmlfiles)
         self.cache_size = cache_size
         self.__rd = random_uniform_num(self.total_size)

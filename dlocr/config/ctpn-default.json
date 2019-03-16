@@ -1,5 +1,5 @@
 {
   "image_channels": 3,
-  "vgg_trainable": true,
+  "vgg_trainable": false,
   "lr": 1e-05
 }
