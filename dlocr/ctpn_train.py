@@ -1,14 +1,14 @@
+import os
+
+import keras.backend as K
+import tensorflow as tf
 from keras.callbacks import EarlyStopping, TensorBoard
 
 from dlocr.ctpn import CTPN
-from dlocr.ctpn.data_loader import DataLoader
-from dlocr.ctpn import get_session
-from dlocr.custom import LRScheduler, SingleModelCK
-import keras.backend as K
-import os
-
 from dlocr.ctpn import default_ctpn_config_path
-
+from dlocr.ctpn.data_loader import DataLoader
+from dlocr.custom import SingleModelCK
+from dlocr.custom.callbacks import SGDRScheduler
 
 if __name__ == '__main__':
     import argparse
@@ -28,7 +28,11 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    K.set_session(get_session(0.8))
+    config = tf.ConfigProto()
+    config.gpu_options.allow_growth = True
+    session = tf.Session(config=config)
+    K.set_session(session)
+
     config = CTPN.load_config(args.config_file_path)
 
     weights_file_path = args.weights_file_path
@@ -50,10 +54,15 @@ if __name__ == '__main__':
 
     data_loader = DataLoader(args.anno_dir, args.images_dir)
 
-    checkpoint = SingleModelCK(save_weigths_file_path, model=ctpn.model, save_weights_only=True)
-    earlystop = EarlyStopping(patience=10)
+    checkpoint = SingleModelCK(save_weigths_file_path, model=ctpn.model, save_weights_only=True, monitor='loss')
+    earlystop = EarlyStopping(patience=10, monitor='loss')
     log = TensorBoard(log_dir='logs', histogram_freq=0, batch_size=1, write_graph=True, write_grads=False)
-    lr_scheduler = LRScheduler(lambda epoch, lr: lr / 2, watch="loss", watch_his_len=2)
+    lr_scheduler = SGDRScheduler(min_lr=1e-6, max_lr=1e-4,
+                                 initial_epoch=args.initial_epoch,
+                                 steps_per_epoch=data_loader.steps_per_epoch,
+                                 cycle_length=8,
+                                 lr_decay=0.5,
+                                 mult_factor=1.2)
 
     ctpn.train(data_loader.load_data(),
                epochs=args.epochs,

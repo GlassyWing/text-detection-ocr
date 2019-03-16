@@ -319,7 +319,7 @@ def gen_sample(xmlpath, imgpath, batchsize=1):
     """
 
     # list xml 
-    xmlfiles = glob(f'{xmlpath}/*.xml')
+    xmlfiles = glob(xmlpath + '/*.xml')
     rd = random_uniform_num(len(xmlfiles))
     xmlfiles = np.array(xmlfiles)
 

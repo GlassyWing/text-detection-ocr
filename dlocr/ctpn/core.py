@@ -1,4 +1,5 @@
 import json
+import os
 
 import cv2
 import keras.backend as K
@@ -81,6 +82,12 @@ def draw_rect(rect, img):
     cv2.line(img, (rect[4], rect[5]), (rect[0], rect[1]), (255, 0, 0), 2)
 
 
+vgg_weights_path = \
+    os.path.join(os.getcwd(),
+                 os.path.dirname(__file__),
+                 "../weights/vgg16_weights_tf_dim_ordering_tf_kernels_notop.h5")
+
+
 class CTPN:
 
     def __init__(self, lr=0.00001, image_channels=3, vgg_trainable=True, weight_path=None, num_gpu=1):
@@ -94,8 +101,8 @@ class CTPN:
             self.model.load_weights(weight_path)
 
     def __build_model(self):
-        base_model = VGG16(include_top=False, input_shape=self.image_shape)
-
+        base_model = VGG16(weights=None, include_top=False, input_shape=self.image_shape)
+        base_model.load_weights(vgg_weights_path)
         if self.vgg_trainable:
             base_model.trainable = True
         else:
@@ -140,8 +147,12 @@ class CTPN:
     def train(self, train_data_generator, epochs, **kwargs):
         self.parallel_model.fit_generator(train_data_generator, epochs=epochs, **kwargs)
 
-    def predict(self, image_path, output_path=None, mode=1):
-        img = cv2.imdecode(np.fromfile(image_path, dtype=np.uint8), cv2.IMREAD_COLOR)
+    def predict(self, image, output_path=None, mode=1):
+
+        if type(image) == str:
+            img = cv2.imdecode(np.fromfile(image, dtype=np.uint8), cv2.IMREAD_COLOR)
+        else:
+            img = image
         h, w, c = img.shape
 
         # image size length must be greater than or equals 16 x 16,

@@ -138,17 +138,19 @@ class TextDetectionApp:
         else:
             self.ocr = DenseNetOCR(num_classes=len(self.id_to_char))
 
-    def detect(self, image_path, adjust=True, parallel=True):
+    def detect(self, image, adjust=True, parallel=True):
         """
 
         :param parallel: 是否并行处理
-        :param image_path: 图像路径
+        :param image: numpy数组形状为(h, w, c)或图像路径
         :param adjust: 是否调整检测框
         :return:
         """
-        if not os.path.exists(image_path):
-            raise ValueError(f"The image path: {image_path} not exists!")
-        text_recs, img = self.ctpn.predict(image_path, mode=2)  # 得到所有的检测框
+
+        if type(image) == str:
+            if not os.path.exists(image):
+                raise ValueError("The image path: " + image + " not exists!")
+        text_recs, img = self.ctpn.predict(image, mode=2)  # 得到所有的检测框
 
         if len(text_recs) == 0:
             return [], []
