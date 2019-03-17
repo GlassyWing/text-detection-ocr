@@ -1,22 +1,21 @@
 import os
-
+import tensorflow as tf
 import keras.backend as K
 from keras.callbacks import EarlyStopping, TensorBoard
 
-from dlocr.custom import LRScheduler, SingleModelCK
+from dlocr.custom import SingleModelCK
+from dlocr.custom.callbacks import SGDRScheduler, LRFinder
 from dlocr.densenet import DenseNetOCR
-from dlocr.densenet.data_loader import DataLoader
-from dlocr.ctpn.lib import utils
-
 from dlocr.densenet import default_densenet_config_path
+from dlocr.densenet.data_loader import DataLoader
 
 if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("-ie", "--initial_epoch", help="初始迭代数", default=0, type=int)
+    parser.add_argument("-ie", "--initial_epoch", help="初始迭代数", default=1, type=int)
     parser.add_argument("-bs", "--batch_size", help="小批量处理大小", default=64, type=int)
-    parser.add_argument("--epochs", help="迭代数", default=20, type=int)
+    parser.add_argument("--epochs", help="迭代数", default=128, type=int)
     parser.add_argument("--gpus", help="gpu的数量", default=1, type=int)
     parser.add_argument("--images_dir", help="图像位置", required=True)
     parser.add_argument("--dict_file_path", help="字典文件位置",
@@ -26,13 +25,16 @@ if __name__ == '__main__':
     parser.add_argument("--config_file_path", help="模型配置文件位置",
                         default=default_densenet_config_path)
     parser.add_argument("--weights_file_path", help="模型初始权重文件位置",
-                        default=None)
+                        default='../model/weights-densent-01.hdf5')
     parser.add_argument("--save_weights_file_path", help="保存模型训练权重文件位置",
                         default=r'../model/weights-densent-{epoch:02d}.hdf5')
 
     args = parser.parse_args()
 
-    K.set_session(utils.get_session(0.8))
+    config = tf.ConfigProto()
+    config.gpu_options.allow_growth = True
+    session = tf.Session(config=config)
+    K.set_session(session)
 
     batch_size = args.batch_size
 
@@ -97,11 +99,24 @@ if __name__ == '__main__':
                       write_graph=True,
                       write_grads=False)
 
-    # 观测ctc损失的值，一旦损失回升，将学习率缩小一半
-    lr_scheduler = LRScheduler(lambda _, lr: lr / 2, watch="loss", watch_his_len=2)
+    lr_finder = LRFinder(1e-6, 1e-2, 500, epochs=1)  # => (1e-4, 1e-3)
+    lr_scheduler = SGDRScheduler(min_lr=4e-3, max_lr=1e-2,
+                                 steps_per_epoch=train_data_loader.steps_per_epoch,
+                                 lr_decay=0.8,
+                                 cycle_length=15,
+                                 mult_factor=1.1,
+                                 initial_epoch=initial_epoch)
 
     ocr.train(epochs=args.epochs,
               train_data_loader=train_data_loader,
               valid_data_loader=valid_data_loader,
               callbacks=[earlystop, checkpoint, log, lr_scheduler],
               initial_epoch=initial_epoch)
+
+    # ocr.parallel_model.fit_generator(generator=train_data_loader.load_data(), epochs=1,
+    #                                  steps_per_epoch=500,
+    #                                  validation_data=valid_data_loader.load_data(),
+    #                                  validation_steps=10,
+    #                                  callbacks=[lr_finder])
+    #
+    # lr_finder.plot_loss()
