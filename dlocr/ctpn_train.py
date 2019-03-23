@@ -42,6 +42,8 @@ if __name__ == '__main__':
 
     ctpn = CTPN(**config)
 
+    ctpn.model.summary(line_length=120)
+
     save_weigths_file_path = args.save_weights_file_path
 
     if save_weigths_file_path is None:
@@ -57,12 +59,12 @@ if __name__ == '__main__':
     checkpoint = SingleModelCK(save_weigths_file_path, model=ctpn.model, save_weights_only=True, monitor='loss')
     earlystop = EarlyStopping(patience=10, monitor='loss')
     log = TensorBoard(log_dir='logs', histogram_freq=0, batch_size=1, write_graph=True, write_grads=False)
-    lr_scheduler = SGDRScheduler(min_lr=1e-6, max_lr=1e-4,
+    lr_scheduler = SGDRScheduler(min_lr=1e-7, max_lr=8e-5,
                                  initial_epoch=args.initial_epoch,
                                  steps_per_epoch=data_loader.steps_per_epoch,
-                                 cycle_length=8,
-                                 lr_decay=0.5,
-                                 mult_factor=1.2)
+                                 cycle_length=10,
+                                 lr_decay=0.8,
+                                 mult_factor=1.1)
 
     ctpn.train(data_loader.load_data(),
                epochs=args.epochs,
