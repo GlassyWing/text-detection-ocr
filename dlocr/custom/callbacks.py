@@ -161,12 +161,14 @@ class SGDRScheduler(Callback):
                 self.cycle_length = np.ceil(self.mult_factor * self.cycle_length)
                 acc += self.cycle_length
                 self.next_restart += self.cycle_length
+                self.max_lr *= self.lr_decay
 
             # if on next cycle
             if initial_epoch + 1 == self.next_restart:
                 self.cycle_length = np.ceil(self.mult_factor * self.cycle_length)
                 acc += self.cycle_length * self.steps_per_epoch
                 self.next_restart += self.cycle_length
+                self.max_lr *= self.lr_decay
                 self.batch_since_restart = 0
             else:
 

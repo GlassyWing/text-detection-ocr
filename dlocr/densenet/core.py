@@ -15,15 +15,15 @@ from keras.utils.multi_gpu_utils import multi_gpu_model
 from dlocr.densenet.data_loader import DataLoader
 
 
-def _dense_block(x, nb_layers, nb_filter, growth_rate, dropout_rate=0.2, weight_decay=1e-4):
+def _dense_block(x, nb_layers, nb_filter, growth_rate, dropout_rate=0.2):
     for i in range(nb_layers):
-        cb = _conv_block(x, growth_rate, dropout_rate, weight_decay)
+        cb = _conv_block(x, growth_rate, dropout_rate)
         x = concatenate([x, cb])
         nb_filter += growth_rate
     return x, nb_filter
 
 
-def _conv_block(input, growth_rate, dropout_rate=None, weight_decay=1e-4):
+def _conv_block(input, growth_rate, dropout_rate=None):
     x = BatchNormalization(epsilon=1.1e-5)(input)
     x = Activation('relu')(x)
     x = Conv2D(growth_rate, (3, 3), kernel_initializer='he_normal', padding='same')(x)
@@ -32,11 +32,11 @@ def _conv_block(input, growth_rate, dropout_rate=None, weight_decay=1e-4):
     return x
 
 
-def _transition_block(input, nb_filter, dropout_rate=None, pooltype=1, weight_decay=1e-4):
+def _transition_block(input, nb_filter, dropout_rate=None, pooltype=1, regular=1e-4):
     x = BatchNormalization(epsilon=1.1e-5)(input)
     x = Activation('relu')(x)
     x = Conv2D(nb_filter, (1, 1), kernel_initializer='he_normal', padding='same', use_bias=False,
-               kernel_regularizer=l2(weight_decay))(x)
+               kernel_regularizer=l2(regular))(x)
 
     if dropout_rate:
         x = Dropout(dropout_rate)(x)
@@ -96,6 +96,7 @@ def decode_single_line(pred_text, nclass, id_to_char):
 
     # pred_text = pred_text[np.where(pred_text != nclass - 1)[0]]
 
+    print(pred_text)
     for i in range(len(pred_text)):
         if (pred_text[i] != 0 and pred_text[i] != nclass - 1) and (
                 (pred_text[i] != pred_text[i - 1]) or (i > 1 and pred_text[i] == pred_text[i - 2])):
@@ -124,8 +125,10 @@ class DenseNetOCR:
                  image_channels=1,
                  maxlen=50,
                  dropout_rate=0.2,
-                 weight_decay=1e-4,
+                 l2_regular=1e-4,
                  filters=64,
+                 num_layers=8,
+                 growth_rate=8,
                  weight_path=None,
                  num_gpu=1):
         self.image_shape = (image_height, None, image_channels)
@@ -133,13 +136,15 @@ class DenseNetOCR:
         self.image_height, self.image_channels = image_height, image_channels
         self.maxlen = maxlen
         self.dropout_rate = dropout_rate
-        self.weight_decay = weight_decay
+        self.l2_regular = l2_regular
         self.filters = filters
         self.num_classes = num_classes
+        self.num_layer = num_layers
+        self.growth_rate = growth_rate
         self.num_gpu = num_gpu
         self.base_model, self.model, self.parallel_model = self.__build_model()
         if weight_path is not None:
-            self.base_model.load_weights(weight_path)
+            self.base_model.load_weights(weight_path, skip_mismatch=True)
 
     def config(self):
         return {
@@ -149,29 +154,35 @@ class DenseNetOCR:
             "image_channels": self.image_channels,
             "maxlen": self.maxlen,
             "dropout_rate": self.dropout_rate,
-            "weight_decay": self.weight_decay,
-            "filters": self.filters
+            "l2_regular": self.l2_regular,
+            "filters": self.filters,
+            "num_layers": self.num_layer,
+            "growth_rate": self.growth_rate
         }
 
     def __build_model(self):
         input = Input(shape=self.image_shape, name="the_input")
         nb_filter = self.filters
+        nb_layers = self.num_layer
+        growth_rate = self.growth_rate
 
         x = Conv2D(nb_filter, (5, 5), strides=(2, 2), kernel_initializer='he_normal', padding='same',
-                   use_bias=False, kernel_regularizer=l2(self.weight_decay))(input)
+                   use_bias=False, kernel_regularizer=l2(self.l2_regular))(input)
 
-        # 64 +  8 * 8 = 128
-        x, nb_filter = _dense_block(x, 8, nb_filter, 8, None, self.weight_decay)
+        # nb_filter +  nb_layer * growth_rate
+        x, nb_filter = _dense_block(x, nb_layers, nb_filter, growth_rate, self.dropout_rate)
+
+        # nb_filter
+        x, nb_filter = _transition_block(x, nb_filter, self.dropout_rate, 2, self.l2_regular)
+
+        # nb_filter +  nb_layer * growth_rate
+        x, nb_filter = _dense_block(x, nb_layers, nb_filter, growth_rate, self.dropout_rate)
+
         # 128
-        x, nb_filter = _transition_block(x, 128, self.dropout_rate, 2, self.weight_decay)
+        x, nb_filter = _transition_block(x, 128, self.dropout_rate, 2, self.l2_regular)
 
-        # 128 + 8 * 8 = 192
-        x, nb_filter = _dense_block(x, 8, nb_filter, 8, None, self.weight_decay)
-        # 192->128
-        x, nb_filter = _transition_block(x, 128, self.dropout_rate, 2, self.weight_decay)
-
-        # 128 + 8 * 8 = 192
-        x, nb_filter = _dense_block(x, 8, nb_filter, 8, None, self.weight_decay)
+        # nb_filter +  nb_layer * growth_rate
+        x, nb_filter = _dense_block(x, nb_layers, nb_filter, growth_rate, self.dropout_rate)
 
         x = BatchNormalization(axis=-1, epsilon=1.1e-5)(x)
         x = Activation('relu')(x)

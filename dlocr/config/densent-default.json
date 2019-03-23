@@ -1,10 +1,12 @@
 {
   "lr": 0.001,
-  "num_classes": 5290,
+  "num_classes": 5331,
   "image_height": 32,
   "image_channels": 1,
   "maxlen": 15,
+  "l2_regular": 1e-4,
+  "num_layers": 8,
+  "growth_rate": 8,
   "dropout_rate": 0.2,
-  "weight_decay": 0.0001,
   "filters": 64
 }
