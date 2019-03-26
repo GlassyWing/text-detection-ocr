@@ -13,7 +13,7 @@ if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("-ie", "--initial_epoch", help="初始迭代数", default=1, type=int)
+    parser.add_argument("-ie", "--initial_epoch", help="初始迭代数", default=0, type=int)
     parser.add_argument("-bs", "--batch_size", help="小批量处理大小", default=64, type=int)
     parser.add_argument("--epochs", help="迭代数", default=128, type=int)
     parser.add_argument("--gpus", help="gpu的数量", default=1, type=int)
@@ -25,7 +25,7 @@ if __name__ == '__main__':
     parser.add_argument("--config_file_path", help="模型配置文件位置",
                         default=default_densenet_config_path)
     parser.add_argument("--weights_file_path", help="模型初始权重文件位置",
-                        default='../model/weights-densent-01.hdf5')
+                        default=None)
     parser.add_argument("--save_weights_file_path", help="保存模型训练权重文件位置",
                         default=r'../model/weights-densent-{epoch:02d}.hdf5')
 
@@ -100,9 +100,9 @@ if __name__ == '__main__':
                       write_grads=False)
 
     lr_finder = LRFinder(1e-6, 1e-2, 500, epochs=1)  # => (1e-4, 1e-3)
-    lr_scheduler = SGDRScheduler(min_lr=4e-3, max_lr=1e-2,
+    lr_scheduler = SGDRScheduler(min_lr=1e-4, max_lr=1e-3,
                                  steps_per_epoch=train_data_loader.steps_per_epoch,
-                                 lr_decay=0.8,
+                                 lr_decay=0.5,
                                  cycle_length=15,
                                  mult_factor=1.1,
                                  initial_epoch=initial_epoch)
