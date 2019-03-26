@@ -8,7 +8,7 @@ import numpy as np
 import tensorflow as tf
 from keras import Model
 from keras.applications.vgg16 import VGG16
-from keras.layers import Conv2D, Lambda, Bidirectional, GRU, Activation
+from keras.layers import Conv2D, Lambda, Bidirectional, GRU, Activation, Conv1D
 from keras.optimizers import Adam
 from keras.utils import multi_gpu_model
 
@@ -116,7 +116,9 @@ class CTPN:
 
         x1 = Lambda(_reshape, output_shape=(None, 512))(x)
 
-        x2 = Bidirectional(GRU(128, return_sequences=True), name='blstm')(x1)
+        # x2 = Bidirectional(GRU(128, return_sequences=True), name='blstm')(x1)
+
+        x2 = Conv1D(256, kernel_size=7, padding="same", dilation_rate=1)(x1)
 
         x3 = Lambda(_reshape2, output_shape=(None, None, 256))([x2, x])
         x3 = Conv2D(512, (1, 1), padding='same', activation='relu', name='lstm_fc')(x3)
@@ -177,7 +179,7 @@ class CTPN:
         bbox = utils.clip_box(bbox, [h, w])
 
         # score > 0.7
-        fg = np.where(cls_prod[0, :, 1] > utils.IOU_SELECT)[0]
+        fg = np.where(cls_prod[0, :, 1] > 0.8)[0]
         select_anchor = bbox[fg, :]
         select_score = cls_prod[0, fg, 1]
         select_anchor = select_anchor.astype('int32')
@@ -190,7 +192,7 @@ class CTPN:
         select_score = select_score[keep_index]
         select_score = np.reshape(select_score, (select_score.shape[0], 1))
         nmsbox = np.hstack((select_anchor, select_score))
-        keep = utils.nms(nmsbox, 1 - utils.IOU_SELECT)
+        keep = utils.nms(nmsbox, 1 - 0.8)
         select_anchor = select_anchor[keep]
         select_score = select_score[keep]
 
