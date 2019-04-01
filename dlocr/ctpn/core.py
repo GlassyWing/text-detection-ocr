@@ -185,14 +185,14 @@ class CTPN:
         select_anchor = select_anchor.astype('int32')
 
         # filter size
-        keep_index = utils.filter_bbox(select_anchor, 16)
+        keep_index = utils.filter_bbox(select_anchor, 12)
 
         # nsm
         select_anchor = select_anchor[keep_index]
         select_score = select_score[keep_index]
         select_score = np.reshape(select_score, (select_score.shape[0], 1))
         nmsbox = np.hstack((select_anchor, select_score))
-        keep = utils.nms(nmsbox, 1 - 0.8)
+        keep = utils.nms(nmsbox, 1 - 0.96)
         select_anchor = select_anchor[keep]
         select_score = select_score[keep]
 

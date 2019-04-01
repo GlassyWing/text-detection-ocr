@@ -6,7 +6,7 @@ from keras.callbacks import EarlyStopping, TensorBoard
 from dlocr.custom import SingleModelCK
 from dlocr.custom.callbacks import SGDRScheduler, LRFinder
 from dlocr.densenet import DenseNetOCR
-from dlocr.densenet import default_densenet_config_path
+from dlocr.densenet import default_densenet_config_path, default_dict_path
 from dlocr.densenet.data_loader import DataLoader
 
 if __name__ == '__main__':
@@ -19,7 +19,7 @@ if __name__ == '__main__':
     parser.add_argument("--gpus", help="gpu的数量", default=1, type=int)
     parser.add_argument("--images_dir", help="图像位置", required=True)
     parser.add_argument("--dict_file_path", help="字典文件位置",
-                        default="./dictionary/dict.json")
+                        default=default_dict_path)
     parser.add_argument("--train_file_path", help="训练文件位置", required=True)
     parser.add_argument("--test_file_path", help="测试文件位置", required=True)
     parser.add_argument("--config_file_path", help="模型配置文件位置",
@@ -27,7 +27,7 @@ if __name__ == '__main__':
     parser.add_argument("--weights_file_path", help="模型初始权重文件位置",
                         default=None)
     parser.add_argument("--save_weights_file_path", help="保存模型训练权重文件位置",
-                        default=r'../model/weights-densent-{epoch:02d}.hdf5')
+                        default=r'model/weights-densent-{epoch:02d}.hdf5')
 
     args = parser.parse_args()
 

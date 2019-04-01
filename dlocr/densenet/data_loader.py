@@ -43,7 +43,7 @@ class DataLoader:
         self.images_dir = images_dir
         self.maxlen = maxlen
         self.image_shape = image_shape
-        self.tokenizer: Tokenizer = load_dictionary(dict_file_path, encoding=encoding)
+        self.tokenizer = load_dictionary(dict_file_path, encoding=encoding)
         self.num_classes = len(self.tokenizer.word_index)
         self.batch_size = batch_size
         self.image_label = self.__load_labeled_file(labeled_file_path, encoding)
