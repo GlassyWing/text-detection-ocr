@@ -2,8 +2,8 @@ import os
 from concurrent.futures import ThreadPoolExecutor
 from math import *
 from multiprocessing import Lock
-from dlocr.ctpn import default_ctpn_weight_path, default_ctpn_config_path
-from dlocr.densenet import default_densenet_weight_path, default_densenet_config_path, default_dict_path
+from dlocr.ctpn import default_ctpn_config_path
+from dlocr.densenet import default_densenet_config_path, default_dict_path
 
 import cv2
 import numpy as np
@@ -173,9 +173,9 @@ class TextDetectionApp:
         return text_recs, texts
 
     @staticmethod
-    def get_or_create(ctpn_weight_path=default_ctpn_weight_path,
+    def get_or_create(ctpn_weight_path,
+                      densenet_weight_path,
                       ctpn_config_path=default_ctpn_config_path,
-                      densenet_weight_path=default_densenet_weight_path,
                       densenet_config_path=default_densenet_config_path,
                       dict_path=default_dict_path):
 

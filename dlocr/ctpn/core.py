@@ -179,20 +179,20 @@ class CTPN:
         bbox = utils.clip_box(bbox, [h, w])
 
         # score > 0.7
-        fg = np.where(cls_prod[0, :, 1] > 0.8)[0]
+        fg = np.where(cls_prod[0, :, 1] > 0.6)[0]
         select_anchor = bbox[fg, :]
         select_score = cls_prod[0, fg, 1]
         select_anchor = select_anchor.astype('int32')
 
         # filter size
-        keep_index = utils.filter_bbox(select_anchor, 12)
+        keep_index = utils.filter_bbox(select_anchor, 16)
 
         # nsm
         select_anchor = select_anchor[keep_index]
         select_score = select_score[keep_index]
         select_score = np.reshape(select_score, (select_score.shape[0], 1))
         nmsbox = np.hstack((select_anchor, select_score))
-        keep = utils.nms(nmsbox, 1 - 0.96)
+        keep = utils.nms(nmsbox, 1 - 0.9)
         select_anchor = select_anchor[keep]
         select_score = select_score[keep]
 

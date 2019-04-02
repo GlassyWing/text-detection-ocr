@@ -95,7 +95,6 @@ def decode_single_line(pred_text, nclass, id_to_char):
     char_list = []
 
     # pred_text = pred_text[np.where(pred_text != nclass - 1)[0]]
-
     for i in range(len(pred_text)):
         if (pred_text[i] != 0 and pred_text[i] != nclass - 1) and (
                 (pred_text[i] != pred_text[i - 1]) or (i > 1 and pred_text[i] == pred_text[i - 2])):
@@ -105,12 +104,13 @@ def decode_single_line(pred_text, nclass, id_to_char):
 
 def decode(pred, nclass, id_to_char):
     lines = []
-
+    pred[pred < 0.5] = 0
     pred_texts = pred.argmax(axis=2)
 
     with ThreadPoolExecutor() as executor:
         for line in executor.map(lambda pred_text: decode_single_line(pred_text, nclass, id_to_char), pred_texts):
-            lines.append(line)
+            if len(line) > 0:
+                lines.append(line)
 
     return lines
 
