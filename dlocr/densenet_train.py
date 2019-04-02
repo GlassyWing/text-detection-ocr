@@ -27,7 +27,7 @@ if __name__ == '__main__':
     parser.add_argument("--weights_file_path", help="模型初始权重文件位置",
                         default=None)
     parser.add_argument("--save_weights_file_path", help="保存模型训练权重文件位置",
-                        default=r'model/weights-densent-{epoch:02d}.hdf5')
+                        default=r'model/weights-densenet-{epoch:02d}.hdf5')
 
     args = parser.parse_args()
 
@@ -62,7 +62,7 @@ if __name__ == '__main__':
         try:
             if not os.path.exists("model"):
                 os.makedirs("model")
-            save_weigths_file_path = "model/weights-densent-{epoch:02d}.hdf5"
+            save_weigths_file_path = "model/weights-densenet-{epoch:02d}.hdf5"
         except OSError:
             print('Error: Creating directory. ' + "model")
 
