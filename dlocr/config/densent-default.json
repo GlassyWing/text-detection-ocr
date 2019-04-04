@@ -1,6 +1,6 @@
 {
   "lr": 0.001,
-  "num_classes": 5992,
+  "num_classes": 5993,
   "image_height": 32,
   "image_channels": 1,
   "maxlen": 15,
