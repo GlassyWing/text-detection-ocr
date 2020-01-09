@@ -36,7 +36,7 @@ Python: 3.6
   cd dist/
   pip install dlocr-0.1.tar.gz
   ```
-
+  
 ## 执行速度
 
 | 图像大小 | 处理器    | 文本行数量 | 速度  |
@@ -245,10 +245,10 @@ python densenetocr_predict.py --image_path asset/demo_densenet.jpg
   - 文字图像
   - 标注文件：包括图像路径与所对应的文本标记（train.txt, test.txt)
   - 字典文件：包含数据集中的所有文字 (char_std_5990.txt)
-
+  
 数据集链接：
 
-- ctpn: https://pan.baidu.com/s/1kUNTl1l#list/path=%2F
+- ctpn: 链接: https://pan.baidu.com/s/19iMHzjvNfQS22NdFjZ_2XQ 提取码: nw7a
 - densenet: 链接: https://pan.baidu.com/s/1LT9whsTJx-S48rtRTXw5VA 提取码: rugb
 
 关于创建自己的文本识别数据集，可参考：[https://github.com/Sanster/text_renderer](https://github.com/Sanster/text_renderer)。
